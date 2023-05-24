@@ -1,0 +1,182 @@
+﻿<script src="~/js/Home.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+<table class="table mt-5 border shadow-lg" style="width:70%" id="myTable">
+    <thead class="px-4 bg-light">
+        <tr class="bg-light tablehead">
+            <th scope="col">FirstName <i class="bi bi-arrow-up" onclick="Search(1,'Fname','up')"></i> <i class="bi bi-arrow-down" onclick="Search(1,'Fname','down')"></i></th>
+            <th scope="col">LastName <i class="bi bi-arrow-up" onclick="Search(1,'Lname','up')"></i> <i class="bi bi-arrow-down" onclick="Search(1,'Lname','down')"></i></th>
+            <th scope="col">Email <i class="bi bi-arrow-up" onclick="Search(1,'Email','up')"></i> <i class="bi bi-arrow-down" onclick="Search(1,'Email','down')"></i></th>
+            <th scope="col">Action</th>
+        </tr>
+    </thead>
+    <tbody class="px-4">
+        <tr>
+            <td>
+                <input class="w-50 " type="search" name="searchFname" placeholder="Search" aria-label="Search" onchange="Search(1,'Fname')">
+            </td>
+            <td>
+                <input class="w-50 " type="search" name="searchLname" placeholder="Search" aria-label="Search" onchange="Search(1,'Lname')">
+            </td>
+            <td>
+                <input class="w-50 " type="search" name="searchEmail" placeholder="Search" aria-label="Search" onchange="Search(1,'Email')">
+            </td>
+            <td>
+            </td>
+        </tr>
+        @foreach (var item in ViewBag.usersList)
+        {
+            <tr>
+                <td>@item.Fname</td>
+                <td>@item.Lname</td>
+                <td>@item.Email</td>
+                <td>
+
+                    <button class="btn btn-outline-secondary border-0" data-bs-toggle="modal" data-bs-target="#editUser" onclick="GetUserData(@item.UserId)"> Edit </button>&nbsp;
+                    <div class="modal fade" id="editUser" tabindex="-1" aria-labelledby="editUserLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editSheetGoalLabel">Edit</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="form-example mt-2" method="post">
+                                        <div class="row form-group">
+
+                                            <div class="col">
+                                                <span class="fs-4">Email<span class="text-danger">*</span></span>
+                                                <input type="text"
+                                                   class="form-control text my-2 hiding"
+                                                   id="email"
+                                                   placeholder="Enter Email" />
+
+                                            </div>
+                                        </div>
+                                        <div class="row form-group">
+                                            <div class="col">
+                                                <span class="fs-4">FirstName<span class="text-danger">*</span></span>
+                                                <input type="text"
+                                                   class="form-control text my-2 hiding"
+                                                   id="fname"
+                                                   placeholder="Enter First Name" />
+
+                                            </div>
+                                            <div class="col">
+                                                <span class="fs-4">LastName<span class="text-danger">*</span></span>
+                                                <input type="text"
+                                                   class="form-control text my-2 hiding"
+                                                   id="lname"
+                                                   placeholder="Enter Last Name" />
+                                            </div>
+                                        </div>
+                                        <div class="row form-group">
+                                            <div class="col">
+                                                <span class="fs-4">Country<span class="text-danger">*</span></span>
+                                                <select class="form-select row-cols-auto my-2 " aria-label="Default select example" id="countries">
+                                                    <option selected>Select Country</option>
+                                                    @foreach (var obj in @ViewBag.countries)
+                                                    {
+                                                        <option value="@obj.CountryId"> @obj.Name</option>
+                                                    }
+                                                </select>
+
+                                            </div>
+                                            <div class="col">
+                                                <span class="fs-4">City<span class="text-danger">*</span></span>
+                                                <select class="form-select row-cols-auto my-2 " aria-label="Default select example" id="selectCityLists">
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 d-flex justify-content-end">
+                                            <button class="btn skill"
+                                                type="button"
+                                                data-bs-dismiss="modal" aria-label="Close">
+                                                Cancle
+                                            </button>
+                                            <input type="hidden" id="userid">
+                                            <button class="btn savePassword ms-2"
+                                                type="button"
+                                                id="submit"
+                                                data-bs-dismiss="modal"
+                                                onclick="AfterEditAddUser()">
+                                                Submit
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-danger border-0" onclick="removeByAdmin(@item.UserId)">Remove</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center w-75" onchange="Search()">
+        @{
+            int prevPage = @ViewBag.currentPage - 1;
+        }
+
+        <li class="page-item">
+            @if (@ViewBag.currentPage > 1)
+            {
+                <button class="page-link" aria-label="Previous" onclick="Search(@prevPage)">
+                    <span aria-hidden="true">&laquo;</span>
+                </button>
+            }
+
+        </li>
+        @{
+            double totalpages = ViewBag.Totalpages1;
+            int nextPage = @ViewBag.currentPage + 1;
+
+            for (int i = 1; i <= totalpages; i++)
+            {
+                @if (i == @ViewBag.currentPage)
+                {
+
+                    <li class="page-item page-active">
+                        <button class="page-link" onclick="Search(@i)">@i </button>
+                    </li>
+                }
+                else
+                {
+                    <li class="page-item">
+                        <button class="page-link" onclick="Search(@i)">@i</button>
+                    </li>
+                }
+
+
+            }
+        }
+        <li class="page-item">
+            @if (@ViewBag.currentPage < @ViewBag.Totalpages1)
+            {
+                <button class="page-link" aria-label="Next" onclick="Search(@nextPage)">
+                    <span aria-hidden="true">&raquo;</span>
+                </button>
+            }
+
+        </li>
+    </ul>
+</nav>
+<style>
+    .page-link {
+        color: black;
+    }
+
+    .page-item button:hover {
+        background: black;
+        color: white;
+    }
+
+    .page-active button {
+        background: black;
+        color: white;
+    }
+</style>
+
+
