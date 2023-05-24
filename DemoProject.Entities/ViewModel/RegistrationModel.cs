@@ -33,10 +33,11 @@ namespace DemoProject.Entities.ViewModel
 
         public long? CityId { get; set; }
 
-
+        //public long Otp { get; set; }
 
         //public string CityName { get; set; } = null!;
 
         //public string CountryName { get; set; } = null!;
+
     }
 }

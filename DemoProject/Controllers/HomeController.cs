@@ -142,8 +142,6 @@ namespace DemoProject.Controllers
                     return RedirectToAction("Index", "Home");
                 }
                 var check = _dbcontext.UserOtps.Where(otp => otp.Email.ToLower() == email.ToLower() && otp.Otp == model.Otp).FirstOrDefault();
-
-
                 if (check != null && email != null)
                 {
                     TempData["success"] = "OTP has been verified and you have registered successfully.";
@@ -252,10 +250,11 @@ namespace DemoProject.Controllers
         public IActionResult HomePage()
         {
             ViewBag.countries = _dbcontext.Countries.ToList();
-            ViewBag.usersList = _dbcontext.Users.Where(a => a.DeletedAt == null).Skip((1 - 1) * 2).Take(2).ToList();
+            var user = _dbcontext.Users.Where(a => a.DeletedAt == null).Skip((1 - 1) * 2).Take(2).ToList();
+            ViewBag.usersList = user;
             ViewBag.Totalpages1 = Math.Ceiling(_dbcontext.Users.Where(a => a.DeletedAt == null).ToList().Count() / 2.0);
             ViewBag.currentPage = 1;
-            return View();
+            return View(user);
         }
 
         public JsonResult GetCity(long countryId)
@@ -326,7 +325,7 @@ namespace DemoProject.Controllers
             ViewBag.Finder = obj.Finder;
             ViewBag.Sort = obj.Sort;
             ViewBag.countries = _dbcontext.Countries.ToList();
-            return PartialView("_UsersCRUD");
+            return PartialView("_UsersCRUD" , usersData);
         }
         #endregion
 

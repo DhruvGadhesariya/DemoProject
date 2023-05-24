@@ -134,9 +134,17 @@ namespace DemoProject.Repository.Repository
             var pageSize = 2;
             var query = _dbcontext.Users.Where(user => user.DeletedAt == null).AsQueryable();
 
+            if (!string.IsNullOrEmpty(obj.Search))
+            {
+                query = query.Where(m =>
+                    m.Fname.Contains(obj.Search) ||
+                    m.Lname.Contains(obj.Search) ||
+                    m.Email.Contains(obj.Search)
+                );
+            }
 
-            if (obj.Finder == "Fname")
-                query = query.Where(user => user.Fname.ToLower().Contains(obj.Search.ToLower()));
+            //if (!string.IsNullOrWhiteSpace(obj.SearchFname) && obj.Finder == "Fname")
+            //    query = query.Where(user => user.Fname.ToLower().Contains(obj.SearchFname.ToLower()));
 
             if (obj.Finder == "Fname" && obj.Sort == "up")
                 query = query.OrderBy(user => user.Fname);
@@ -144,8 +152,8 @@ namespace DemoProject.Repository.Repository
             if(obj.Finder == "Fname" && obj.Sort == "down")
                 query = query.OrderByDescending(user => user.Fname);
 
-            if (obj.Finder == "Lname")
-                query = query.Where(user => user.Lname.ToLower().Contains(obj.Search.ToLower()));
+            //if (!string.IsNullOrWhiteSpace(obj.SearchLname) && obj.Finder == "Lname")
+            //    query = query.Where(user => user.Lname.ToLower().Contains(obj.SearchLname.ToLower()));
 
             if (obj.Finder == "Lname" && obj.Sort == "up")
                 query = query.OrderBy(user => user.Lname);
@@ -153,8 +161,8 @@ namespace DemoProject.Repository.Repository
             if (obj.Finder == "Lname" && obj.Sort == "down")
                 query = query.OrderByDescending(user => user.Lname);
 
-            if (obj.Finder == "Email")
-                query = query.Where(user => user.Email.ToLower().Contains(obj.Search.ToLower()));
+            //if (!string.IsNullOrWhiteSpace(obj.SearchEmail) && obj.Finder == "Lname")
+            //    query = query.Where(user => user.Email.ToLower().Contains(obj.SearchEmail.ToLower()));
 
             if (obj.Finder == "Email" && obj.Sort == "up")
                 query = query.OrderBy(user => user.Email);

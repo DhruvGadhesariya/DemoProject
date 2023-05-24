@@ -1,6 +1,6 @@
 ﻿function Search(pg, finder , sort) {
 
-    var search = $("input[name='search" + finder + "']").val();
+    var Search = $("input[name='search']").val();
 
     if (pg == undefined) {
         pg = 1;
@@ -10,7 +10,7 @@
         url: "/Home/Search",
         type: "post",
         data: {
-            Search: search,
+            Search: Search,
             Pg: pg,
             Finder: finder,
             Sort:sort
