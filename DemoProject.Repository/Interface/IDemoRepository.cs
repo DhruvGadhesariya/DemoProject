@@ -14,7 +14,7 @@ namespace DemoProject.Repository.Interface
 
         public bool IsValidEmailAddress(string email);
 
-        public bool AddUser(RegistrationModel model);
+        public bool AddUser(UserVerifyViewmodel model);
 
         public List<City> GetCityData(long countryId);
 

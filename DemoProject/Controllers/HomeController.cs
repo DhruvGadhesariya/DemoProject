@@ -67,53 +67,12 @@ namespace DemoProject.Controllers
             if (ModelState.IsValid && emailChecked)
             {
                 HttpContext.Session.SetString("email", model.Email);
-                Random random = new Random();
-                long otp = random.Next(100000, 999999);
-
-                SendEmailAsync(model.Email, otp);
-
-                DateTime currentDateTime = DateTime.Now;
-                DateTime expirationDateTime = currentDateTime.AddMinutes(5);
-                var check = _dbcontext.UserOtps.FirstOrDefault(a => a.Email.ToLower() == model.Email.ToLower());
-                var userExists = _demoreppo.AddUser(model);
-
-                if (check == null)
-                {
-                    var myotp = new UserOtp();
-                    myotp.Email = model.Email;
-                    myotp.Otp = otp;
-                    myotp.CreatedAt = DateTime.Now;
-                    myotp.ExpiredAt = expirationDateTime;
-                    _dbcontext.UserOtps.Add(myotp);
-                    _dbcontext.SaveChanges();
-                    TempData["success"] = "You have registered successfully.";
-                    return RedirectToAction("OtpVerification", "Home");
-                }
-                else if (userExists == false && check == null)
-                {
-                    TempData["error"] = "Updated OTP Has been send..";
-                    ViewBag.countries = _dbcontext.Countries.ToList();
-                    return View(model);
-                }
-                else
-                {
-                    DateTime date = DateTime.Now;
-                    DateTime expdate = currentDateTime.AddMinutes(5);
-
-                    check.CreatedAt = DateTime.Now;
-                    check.ExpiredAt = expdate;
-                    check.Otp = otp;
-
-                    _dbcontext.Update(check);
-                    _dbcontext.SaveChanges();
-
-                    TempData["success"] = "You have registered successfully.";
-                    return RedirectToAction("OtpVerification", "Home");
-                }
+                return RedirectToAction("OtpVerification", "Home",model);
             }
             else if (emailChecked == false)
             {
                 TempData["error"] = "Email is Not in format!!";
+                return View(model);
             }
             TempData["error"] = "Enter Appropriate Data";
             ViewBag.countries = _dbcontext.Countries.ToList();
@@ -124,15 +83,48 @@ namespace DemoProject.Controllers
 
         #region OtpVerification
 
-        public IActionResult OtpVerification()
+
+        public IActionResult OtpVerification(RegistrationModel model)
         {
-            return View();
+            Random random = new Random();
+            long otp = random.Next(100000, 999999);
+
+            SendEmailAsync(model.Email, otp);
+
+            var checkexists = _dbcontext.UserOtps.FirstOrDefault(a => a.Email.ToLower() == model.Email.ToLower());
+            DateTime currentDateTime = DateTime.Now;
+            DateTime expirationDateTime = currentDateTime.AddMinutes(5);
+
+            if (checkexists == null)
+            {
+                var myotp = new UserOtp();
+                myotp.Email = model.Email;
+                myotp.Otp = otp;
+                myotp.CreatedAt = DateTime.Now;
+                myotp.ExpiredAt = expirationDateTime;
+                _dbcontext.UserOtps.Add(myotp);
+                _dbcontext.SaveChanges();
+            }
+            else
+            {
+                DateTime date = DateTime.Now;
+                DateTime expdate = currentDateTime.AddMinutes(5);
+
+                checkexists.CreatedAt = DateTime.Now;
+                checkexists.ExpiredAt = expdate;
+                checkexists.Otp = otp;
+
+                _dbcontext.Update(checkexists);
+                _dbcontext.SaveChanges();
+            }
+
+            return View(model);
         }
 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult OtpVerification(UserOtp model)
+        public IActionResult OtpVerification(UserVerifyViewmodel model)     
         {
             if (model.Otp != 0)
             {
@@ -141,9 +133,11 @@ namespace DemoProject.Controllers
                 {
                     return RedirectToAction("Index", "Home");
                 }
+               
                 var check = _dbcontext.UserOtps.Where(otp => otp.Email.ToLower() == email.ToLower() && otp.Otp == model.Otp).FirstOrDefault();
                 if (check != null && email != null)
                 {
+                    var userExists = _demoreppo.AddUser(model);
                     TempData["success"] = "OTP has been verified and you have registered successfully.";
                     return RedirectToAction("Index", "Home");
                 }
@@ -178,13 +172,15 @@ namespace DemoProject.Controllers
                 UseDefaultCredentials = false,
                 Credentials = new NetworkCredential("19it.dhruvgadhesariya@adit.ac.in", "Adit@884369")
             };
-            return client.SendMailAsync(new MailMessage(from: "19it.dhruvgadhesariya@adit.ac.in", to: email, subject, "Your Otp is : " + otp));
+            return client.SendMailAsync(new MailMessage(from: "19it.dhruvgadhesariya@adit.ac.in", 
+                                                        to: email, 
+                                                        subject,
+                                                        "Your Otp is : " + otp));
         }
 
         #endregion
 
         #region Login
-
 
         public IActionResult Index()
         {
@@ -250,12 +246,14 @@ namespace DemoProject.Controllers
         public IActionResult HomePage()
         {
             ViewBag.countries = _dbcontext.Countries.ToList();
-            var user = _dbcontext.Users.Where(a => a.DeletedAt == null).Skip((1 - 1) * 2).Take(2).ToList();
-            ViewBag.usersList = user;
+            var user = _dbcontext.Users.Where(a => a.DeletedAt == null).Take(2).ToList();
+            ViewBag.usersList = user.Skip(0).Take(2).ToList();
             ViewBag.Totalpages1 = Math.Ceiling(_dbcontext.Users.Where(a => a.DeletedAt == null).ToList().Count() / 2.0);
             ViewBag.currentPage = 1;
             return View(user);
         }
+
+            
 
         public JsonResult GetCity(long countryId)
         {
@@ -303,7 +301,6 @@ namespace DemoProject.Controllers
             {
                 TempData["error"] = "Email is not in format!!";
             }
-
         }
         [HttpPost]
         public void RemoveByAdmin(long Id)
@@ -314,8 +311,10 @@ namespace DemoProject.Controllers
 
         [HttpPost]
         public ActionResult Search(UserSearchParams obj)
-        {
-            obj.Search = string.IsNullOrEmpty(obj.Search) ? "" : obj.Search;
+            {
+            obj.SearchLname = string.IsNullOrEmpty(obj.SearchLname) ? "" : obj.SearchLname;
+            obj.SearchFname = string.IsNullOrEmpty(obj.SearchFname) ? "" : obj.SearchFname;
+            obj.SearchEmail = string.IsNullOrEmpty(obj.SearchEmail) ? "" : obj.SearchEmail;
 
             List<User> usersData = _demoreppo.FilterUsers(obj);
             ViewBag.usersList = usersData;
