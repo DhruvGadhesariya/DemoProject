@@ -26,7 +26,7 @@
                 <li class="nav-item active ">
                     <a class="nav-link text-white" asp-controller="Home" asp-action="HomePage">Home <span class="sr-only">(current)</span></a>
                 </li>
-    align-content       <li class="nav-item me-3">
+                <li class="nav-item me-3">
                     <form method="post" asp-controller="Home" asp-action="Logout">
                         <button type="submit" class="nav-link fs-5 fw-bold text-white">Logout</button>
                     </form>
@@ -155,23 +155,42 @@
                         <th scope="col">Action </th>
                     </tr>
                     <tr class="bg-light tablehead">
-                        <th scope="col"> 
-                            <input class="w-50" type="search" name="SearchFname" placeholder="Search"  oninput="Search(1,'Fname')">
+                        <th scope="col">
+                            <input class="w-50" type="search" name="SearchFname" placeholder="Search" oninput="Search(1,'Fname')">
                         </th>
                         <th scope="col">
-                            <input class="w-50 " type="search" name="SearchLname" placeholder="Search"  oninput="Search(1,'Lname')">
+                            <input class="w-50 " type="search" name="SearchLname" placeholder="Search" oninput="Search(1,'Lname')">
                         </th>
                         <th scope="col">
-                            <input class="w-50 " type="search" name="SearchEmail" placeholder="Search"  oninput="Search(1,'Email')">
+                            <input class="w-50 " type="search" name="SearchEmail" placeholder="Search" oninput="Search(1,'Email')">
                         </th>
-                         <th scope="col">
-                         </th>
+                        <th scope="col">
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="dataUsers" class="">
                 </tbody>
             </table>
-            <partial name="_Pagination" />
+            <div class="d-flex justify-content-between" style="width: 81%;">
+                <div>
+                <span>
+                    show
+                </span>
+                <select id="selectentities" onchange="Search();">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                </select>
+                <span>
+                    entities
+                </span>
+            </div>
+            <div id="userpagination">
+                <partial name="_Pagination" />
+            </div>
+            </div>
+            
+
         </div>
     </div>
 </body>
@@ -196,60 +215,59 @@
         color: #757575;
         padding: 8px 37px 8px 37px;
     }
+
     table {
-  border-collapse: collapse;
-  border-spacing: 0;
-  width: 100%;
-  border: 1px solid #ddd;
-}
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+        border: 1px solid #ddd;
+    }
 
-th, td {
-    text-:center;
-  padding: 16px;
-}
+    th, td {
+        text-: center;
+        padding: 16px;
+    }
 
-th:first-child, td:first-child {
-  text-align: left;
-}
+        th:first-child, td:first-child {
+            text-align: left;
+        }
 
-tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
 
-a {
-  text-decoration: none;
-  color: #000;
-}
+    a {
+        text-decoration: none;
+        color: #000;
+    }
 
-a:hover {
-  text-decoration: underline;
-}
+        a:hover {
+            text-decoration: underline;
+        }
 
-.tablehead {
-  background-color: #eee;
-}
+    .tablehead {
+        background-color: #eee;
+    }
 
-.tablehead th {
-  cursor: pointer;
-}
+        .tablehead th {
+            cursor: pointer;
+        }
 
-.table .action {
-  text-align: center;
-}
+    .table .action {
+        text-align: center;
+    }
 
-.table .action .btn {
-  margin-right: 8px;
-}
+        .table .action .btn {
+            margin-right: 8px;
+        }
 
-.table .action .delete {
-  color: red;
-}
-th > input:c {
+        .table .action .delete {
+            color: red;
+        }
 
-}
 </style>
 <script>
     $(document).ready(function(){
-        Search();
+        Search(1,'Fname','up',5);
     });
 </script>

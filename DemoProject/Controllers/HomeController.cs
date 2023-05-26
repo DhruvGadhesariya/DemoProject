@@ -246,11 +246,11 @@ namespace DemoProject.Controllers
         public IActionResult HomePage()
         {
             ViewBag.countries = _dbcontext.Countries.ToList();
-            var user = _dbcontext.Users.Where(a => a.DeletedAt == null).Take(2).ToList();
-            ViewBag.usersList = user.Skip(0).Take(2).ToList();
-            ViewBag.Totalpages1 = Math.Ceiling(_dbcontext.Users.Where(a => a.DeletedAt == null).ToList().Count() / 2.0);
+            ViewBag.Totalpages1 = Math.Ceiling(_dbcontext.Users.Where(a => a.DeletedAt == null).ToList().Count() / 5.0);
             ViewBag.currentPage = 1;
-            return View(user);
+            ViewBag.Finder = "Fname";
+            ViewBag.Sort = "up";
+            return View();
         }
 
             
@@ -311,20 +311,38 @@ namespace DemoProject.Controllers
 
         [HttpPost]
         public ActionResult Search(UserSearchParams obj)
-            {
+        {
             obj.SearchLname = string.IsNullOrEmpty(obj.SearchLname) ? "" : obj.SearchLname;
             obj.SearchFname = string.IsNullOrEmpty(obj.SearchFname) ? "" : obj.SearchFname;
             obj.SearchEmail = string.IsNullOrEmpty(obj.SearchEmail) ? "" : obj.SearchEmail;
 
             List<User> usersData = _demoreppo.FilterUsers(obj);
             ViewBag.usersList = usersData;
-            var list = _dbcontext.Users.Where(a => a.DeletedAt == null).ToList();
-            ViewBag.Totalpages1 = Math.Ceiling(list.Count() / 2.0);
+
+            var list = _dbcontext.Users.Count(a => a.DeletedAt == null);
+            ViewBag.Totalpages1 = Math.Ceiling(list / obj.PageSize);
+            ViewBag.currentPage = obj.Pg;
+            ViewBag.Finder = obj.Finder;
+            ViewBag.Sort = obj.Sort;    
+            ViewBag.pagesize = obj.PageSize;
+            ViewBag.countries = _dbcontext.Countries.ToList();
+            return PartialView("_UsersCRUD" , usersData);
+        }
+
+        [HttpPost]
+        public ActionResult Pagination(UserSearchParams obj)
+        {
+            obj.SearchLname = string.IsNullOrEmpty(obj.SearchLname) ? "" : obj.SearchLname;
+            obj.SearchFname = string.IsNullOrEmpty(obj.SearchFname) ? "" : obj.SearchFname;
+            obj.SearchEmail = string.IsNullOrEmpty(obj.SearchEmail) ? "" : obj.SearchEmail;
+
+            var list = _dbcontext.Users.Count(a => a.DeletedAt == null);
+            ViewBag.Totalpages1 = Math.Ceiling(list / obj.PageSize);
             ViewBag.currentPage = obj.Pg;
             ViewBag.Finder = obj.Finder;
             ViewBag.Sort = obj.Sort;
-            ViewBag.countries = _dbcontext.Countries.ToList();
-            return PartialView("_UsersCRUD" , usersData);
+            ViewBag.pagesize = obj.PageSize;
+            return PartialView("_Pagination");
         }
         #endregion
 

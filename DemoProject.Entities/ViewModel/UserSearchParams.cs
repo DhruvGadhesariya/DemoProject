@@ -14,5 +14,6 @@ namespace DemoProject.Entities.ViewModel
 
         public string Sort { get; set; } = string.Empty;
 
+        public double PageSize { get; set; }
     }
 }

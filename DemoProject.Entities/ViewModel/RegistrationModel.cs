@@ -16,7 +16,7 @@ namespace DemoProject.Entities.ViewModel
 
         [DataType(DataType.Password)]
         [Required(ErrorMessage = "Password is required")]
-        [StringLength(100, ErrorMessage = "The Password must be at least 6 characters long.", MinimumLength = 6)]
+        [StringLength(100, ErrorMessage = "Strong Password is needed!!", MinimumLength = 6)]
         [RegularExpression(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,100}$", ErrorMessage = "Strong Password is needed!!")]
         public string Password { get; set; } = null!;
 

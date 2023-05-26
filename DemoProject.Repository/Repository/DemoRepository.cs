@@ -131,8 +131,8 @@ namespace DemoProject.Repository.Repository
 
         public List<User> FilterUsers(UserSearchParams obj)
         {
-            var pageSize = 2;
-            var query = _dbcontext.Users.Where(user => user.DeletedAt == null).AsQueryable();
+            var pageSize = obj.PageSize;
+            var query = _dbcontext.Users.AsQueryable().Where(user => user.DeletedAt == null);
 
             if (!string.IsNullOrWhiteSpace(obj.SearchFname))
                 query = query.Where(user => user.Fname.ToLower().Contains(obj.SearchFname.ToLower()));
@@ -162,7 +162,7 @@ namespace DemoProject.Repository.Repository
                 query = query.OrderByDescending(user => user.Email);
 
             if (obj.Pg != 0)
-                query = query.Skip((obj.Pg - 1) * pageSize).Take(pageSize);
+                query = query.Skip((obj.Pg - 1) * (int)pageSize).Take((int)pageSize);
 
             return query.ToList();
 

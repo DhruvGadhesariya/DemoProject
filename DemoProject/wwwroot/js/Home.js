@@ -1,13 +1,13 @@
 ﻿
-
-function Search(pg, finder , sort) {
-
+function Search(pg, finder, sort) {
+    debugger
+    var pagesize = $('#selectentities').find(":selected").val();
     var obj = GetFilter();
 
     if (pg == undefined) {
         pg = 1;
     }
-    console.log(obj);
+    console.log(pagesize);
     $.ajax({
         url: "/Home/Search",
         type: "post",
@@ -17,10 +17,27 @@ function Search(pg, finder , sort) {
             SearchEmail: obj.SearchEmail,
             Pg: pg,
             Finder: finder,
-            Sort:sort
+            Sort: sort,
+            PageSize: pagesize
         },
         success: function (data) {
             $('#dataUsers').html(data);
+        }
+    })
+    $.ajax({
+        url: "/Home/Pagination",
+        type: "post",
+        data: {
+            SearchFname: obj.SearchFname,
+            SearchLname: obj.SearchLname,
+            SearchEmail: obj.SearchEmail,
+            Pg: pg,
+            Finder: finder,
+            Sort: sort,
+            PageSize: pagesize
+        },
+        success: function (data) {
+            $('#userpagination').html(data);
         }
     })
 }
@@ -33,17 +50,21 @@ function GetFilter() {
     console.log(SearchFname);
     var searches = [];
 
+    if (SearchFname.length > 0) {
         searches.SearchFname = SearchFname;
+    }
 
-
+    if (SearchLname.length > 0) {
         searches.SearchLname = SearchLname;
+    }
 
-
+    if (SearchEmail.length > 0) {
         searches.SearchEmail = SearchEmail;
+    }
 
-    console.log(searches);
     return searches;
 }
+
 function GetCity() {
 
     var countryId = $('#ucountries').find(":selected").val();   
