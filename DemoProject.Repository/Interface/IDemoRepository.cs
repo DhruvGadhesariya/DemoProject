@@ -2,6 +2,7 @@
 using DemoProject.Entities.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,5 +28,13 @@ namespace DemoProject.Repository.Interface
         public void RemoveByAdmin(long Id);
 
         public List<User> FilterUsers(UserSearchParams obj);
+
+        public DataTable GetFilteredData(List<User> filteredUsers);
+
+        public int[] GetColumnWidths(DataTable table);
+
+        public void DownLoadPdf(int? userId, List<User> usersData);
+
+        public void DownLoadExcel(int? userId, List<User> usersData);
     }
 }

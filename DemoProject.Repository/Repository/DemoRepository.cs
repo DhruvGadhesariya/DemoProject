@@ -2,6 +2,12 @@
 using DemoProject.Entities.Models;
 using DemoProject.Entities.ViewModel;
 using DemoProject.Repository.Interface;
+using System.Data;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using OfficeOpenXml;
+using System.Data;
+using Azure;
 
 namespace DemoProject.Repository.Repository
 {
@@ -41,7 +47,7 @@ namespace DemoProject.Repository.Repository
             string secpass = BCrypt.Net.BCrypt.HashPassword(model.Password);
             if (check == null)
             {
-                var user = new User();  
+                var user = new User();
                 user.Email = model.Email;
                 user.Password = secpass;
                 user.Fname = model.FirstName;
@@ -146,7 +152,7 @@ namespace DemoProject.Repository.Repository
             if (obj.Finder == "Fname" && obj.Sort == "up")
                 query = query.OrderBy(user => user.Fname);
 
-            if(obj.Finder == "Fname" && obj.Sort == "down")
+            if (obj.Finder == "Fname" && obj.Sort == "down")
                 query = query.OrderByDescending(user => user.Fname);
 
             if (obj.Finder == "Lname" && obj.Sort == "up")
@@ -166,6 +172,114 @@ namespace DemoProject.Repository.Repository
 
             return query.ToList();
 
+        }
+        public DataTable GetFilteredData(List<User> filteredUsers)
+        {
+            DataTable table = new DataTable();
+
+            table.Columns.Add("First Name", typeof(string));
+            table.Columns.Add("Last Name", typeof(string));
+            table.Columns.Add("Email", typeof(string));
+
+            foreach (var user in filteredUsers)
+            {
+                DataRow row = table.NewRow();
+                row["First Name"] = user.Fname;
+                row["Last Name"] = user.Lname;
+                row["Email"] = user.Email;
+                table.Rows.Add(row);
+            }
+            return table;
+        }
+
+        public int[] GetColumnWidths(DataTable table)
+        {
+            int[] columnWidths = new int[table.Columns.Count];
+
+            for (int columnIndex = 0; columnIndex < table.Columns.Count; columnIndex++)
+            {
+                int maxLength = table.Columns[columnIndex].ColumnName.Length;
+
+                foreach (DataRow row in table.Rows)
+                {
+                    if (!row.IsNull(columnIndex))
+                    {
+                        int cellLength = row[columnIndex].ToString().Length;
+                        maxLength = Math.Max(maxLength, cellLength);
+                    }
+                }
+                columnWidths[columnIndex] = (maxLength + 2) * 7;
+            }
+            return columnWidths;
+        }
+
+        public void DownLoadPdf(int? userId, List<User> usersData)
+        {
+            string filename = "filtered_" + userId + "-.pdf";
+
+            var filteredData = GetFilteredData(usersData);
+            string filePath = "C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Downloads\\" + filename;
+
+            Document document = new Document();
+            MemoryStream memoryStream = new MemoryStream();
+            PdfWriter writer = PdfWriter.GetInstance(document, new FileStream(filePath, FileMode.Create));
+
+            document.Open();
+
+            PdfPTable table = new PdfPTable(filteredData.Columns.Count);
+            table.WidthPercentage = 100;
+            table.SetWidths(GetColumnWidths(filteredData));
+
+            foreach (DataColumn column in filteredData.Columns)
+            {
+                PdfPCell cell = new PdfPCell(new Phrase(column.ColumnName));
+                table.AddCell(cell);
+            }
+
+            foreach (DataRow row in filteredData.Rows)
+            {
+                foreach (DataColumn column in filteredData.Columns)
+                {
+                    PdfPCell cell = new PdfPCell(new Phrase(row[column].ToString()));
+                    table.AddCell(cell);
+                }
+            }
+            document.Add(table);
+            document.Close();
+        }
+
+        public void DownLoadExcel(int? userId, List<User> usersData)
+        {
+            var filteredData = GetFilteredData(usersData);
+
+            string fileName = "filtered_" + userId + "-.xlsx";
+            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Downloads/", fileName);
+
+            using (ExcelPackage package = new ExcelPackage())
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Filtered Data");
+
+                int columnCount = 1;
+                foreach (DataColumn column in filteredData.Columns)
+                {
+                    worksheet.Cells[1, columnCount].Value = column.ColumnName;
+                    columnCount++;
+                }
+
+                int rowCount = 2;
+                foreach (DataRow row in filteredData.Rows)
+                {
+                    int colCount = 1;
+                    foreach (DataColumn column in filteredData.Columns)
+                    {
+                        worksheet.Cells[rowCount, colCount].Value = row[column];
+                        colCount++;
+                    }
+                    rowCount++;
+                }
+                byte[] fileContents = package.GetAsByteArray();
+                System.IO.File.WriteAllBytes(filePath, fileContents);
+            }
         }
     }
 }

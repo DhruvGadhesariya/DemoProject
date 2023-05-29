@@ -7,6 +7,7 @@ function Search(pg, finder, sort) {
     if (pg == undefined) {
         pg = 1;
     }
+    
     console.log(pagesize);
     $.ajax({
         url: "/Home/Search",
@@ -40,6 +41,50 @@ function Search(pg, finder, sort) {
             $('#userpagination').html(data);
         }
     })
+}
+function downloadData(format) {
+    
+    var selectedFormat = format;
+    var list = getTableData();
+
+    $.ajax({
+        url: '/Home/DownloadData',
+        type: 'GET',
+        data: {
+            format: selectedFormat,
+            tableData: list
+        },
+        success: function (response) {
+            console.log('Download success');
+        },
+        error: function (error) {
+            console.log('Download failed');
+        }
+    });
+}
+function getTableData() {
+
+    var table = document.getElementById("myTable");
+    var tableData = [];
+
+    for (var i = 2; i < table.rows.length; i++) {
+        var row = table.rows[i];
+        var rowData = {};
+
+        var fname = row.cells[0].innerText;
+        var lname = row.cells[1].innerText;
+        var email = row.cells[2].innerText;
+
+        rowData.Fname = fname;
+        rowData.Lname = lname;
+        rowData.Email = email;
+
+        tableData.push(rowData);
+    }
+
+    var jsonData = JSON.stringify(tableData);
+
+    return jsonData;
 }
 
 function GetFilter() {

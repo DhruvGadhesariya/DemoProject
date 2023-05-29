@@ -12,6 +12,11 @@ using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Text.Json;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using OfficeOpenXml;
+using System.Data;
+using Azure;
 
 namespace DemoProject.Controllers
 {
@@ -67,7 +72,7 @@ namespace DemoProject.Controllers
             if (ModelState.IsValid && emailChecked)
             {
                 HttpContext.Session.SetString("email", model.Email);
-                return RedirectToAction("OtpVerification", "Home",model);
+                return RedirectToAction("OtpVerification", "Home", model);
             }
             else if (emailChecked == false)
             {
@@ -124,7 +129,7 @@ namespace DemoProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult OtpVerification(UserVerifyViewmodel model)     
+        public IActionResult OtpVerification(UserVerifyViewmodel model)
         {
             if (model.Otp != 0)
             {
@@ -133,7 +138,7 @@ namespace DemoProject.Controllers
                 {
                     return RedirectToAction("Index", "Home");
                 }
-               
+
                 var check = _dbcontext.UserOtps.Where(otp => otp.Email.ToLower() == email.ToLower() && otp.Otp == model.Otp).FirstOrDefault();
                 if (check != null && email != null)
                 {
@@ -172,8 +177,8 @@ namespace DemoProject.Controllers
                 UseDefaultCredentials = false,
                 Credentials = new NetworkCredential("19it.dhruvgadhesariya@adit.ac.in", "Adit@884369")
             };
-            return client.SendMailAsync(new MailMessage(from: "19it.dhruvgadhesariya@adit.ac.in", 
-                                                        to: email, 
+            return client.SendMailAsync(new MailMessage(from: "19it.dhruvgadhesariya@adit.ac.in",
+                                                        to: email,
                                                         subject,
                                                         "Your Otp is : " + otp));
         }
@@ -250,10 +255,11 @@ namespace DemoProject.Controllers
             ViewBag.currentPage = 1;
             ViewBag.Finder = "Fname";
             ViewBag.Sort = "up";
+            ViewBag.UserId = HttpContext.Session.GetInt32("userid");
             return View();
         }
 
-            
+
 
         public JsonResult GetCity(long countryId)
         {
@@ -309,6 +315,7 @@ namespace DemoProject.Controllers
             TempData["success"] = "You have Removed successfully!!";
         }
 
+
         [HttpPost]
         public ActionResult Search(UserSearchParams obj)
         {
@@ -323,10 +330,10 @@ namespace DemoProject.Controllers
             ViewBag.Totalpages1 = Math.Ceiling(list / obj.PageSize);
             ViewBag.currentPage = obj.Pg;
             ViewBag.Finder = obj.Finder;
-            ViewBag.Sort = obj.Sort;    
+            ViewBag.Sort = obj.Sort;
             ViewBag.pagesize = obj.PageSize;
             ViewBag.countries = _dbcontext.Countries.ToList();
-            return PartialView("_UsersCRUD" , usersData);
+            return PartialView("_UsersCRUD", usersData);
         }
 
         [HttpPost]
@@ -344,6 +351,26 @@ namespace DemoProject.Controllers
             ViewBag.pagesize = obj.PageSize;
             return PartialView("_Pagination");
         }
+
+        public ActionResult DownloadData(string format, string tableData)
+        {
+            List<User> usersData = JsonSerializer.Deserialize<List<User>>(tableData);
+            var userId = HttpContext.Session.GetInt32("userid");
+            if (format == "pdf")
+            {
+                _demoreppo.DownLoadPdf(userId, usersData);
+            }
+            else if (format == "excel")
+            {
+                _demoreppo.DownLoadExcel(userId, usersData);
+            }
+            else
+            {
+                return BadRequest();
+            }
+            return null;
+        }
+
         #endregion
 
         #region Privacy and error
