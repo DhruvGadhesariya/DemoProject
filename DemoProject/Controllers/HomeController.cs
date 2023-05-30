@@ -30,7 +30,6 @@ namespace DemoProject.Controllers
         public readonly DemoDbContext _dbcontext;
 
         public readonly IDemoRepository _demoreppo;
-
         #endregion
 
         #region constructor , dependency inject
@@ -250,16 +249,17 @@ namespace DemoProject.Controllers
         [Authorize]
         public IActionResult HomePage()
         {
+            var list = _dbcontext.Users.Where(a => a.DeletedAt == null).ToList();
             ViewBag.countries = _dbcontext.Countries.ToList();
             ViewBag.Totalpages1 = Math.Ceiling(_dbcontext.Users.Where(a => a.DeletedAt == null).ToList().Count() / 5.0);
             ViewBag.currentPage = 1;
             ViewBag.Finder = "Fname";
             ViewBag.Sort = "up";
+            ViewBag.usersList = list;
+            ViewBag.pagesize = 5;
             ViewBag.UserId = HttpContext.Session.GetInt32("userid");
             return View();
         }
-
-
 
         public JsonResult GetCity(long countryId)
         {
@@ -319,8 +319,8 @@ namespace DemoProject.Controllers
         [HttpPost]
         public ActionResult Search(UserSearchParams obj)
         {
-            obj.SearchLname = string.IsNullOrEmpty(obj.SearchLname) ? "" : obj.SearchLname;
             obj.SearchFname = string.IsNullOrEmpty(obj.SearchFname) ? "" : obj.SearchFname;
+            obj.SearchLname = string.IsNullOrEmpty(obj.SearchLname) ? "" : obj.SearchLname;
             obj.SearchEmail = string.IsNullOrEmpty(obj.SearchEmail) ? "" : obj.SearchEmail;
 
             List<User> usersData = _demoreppo.FilterUsers(obj);
@@ -339,12 +339,22 @@ namespace DemoProject.Controllers
         [HttpPost]
         public ActionResult Pagination(UserSearchParams obj)
         {
-            obj.SearchLname = string.IsNullOrEmpty(obj.SearchLname) ? "" : obj.SearchLname;
             obj.SearchFname = string.IsNullOrEmpty(obj.SearchFname) ? "" : obj.SearchFname;
+            obj.SearchLname = string.IsNullOrEmpty(obj.SearchLname) ? "" : obj.SearchLname;
             obj.SearchEmail = string.IsNullOrEmpty(obj.SearchEmail) ? "" : obj.SearchEmail;
 
+            var usersData = _demoreppo.FilterUsersForDownload(obj).Count();
+            ViewBag.usersList = usersData;
             var list = _dbcontext.Users.Count(a => a.DeletedAt == null);
-            ViewBag.Totalpages1 = Math.Ceiling(list / obj.PageSize);
+            if (string.IsNullOrEmpty(obj.SearchEmail) && string.IsNullOrEmpty(obj.SearchLname) && string.IsNullOrEmpty(obj.SearchFname))
+            {
+                
+                ViewBag.Totalpages1 = Math.Ceiling(list / obj.PageSize);
+            }
+            else
+            {
+                ViewBag.Totalpages1 = Math.Ceiling(usersData / obj.PageSize);
+            }
             ViewBag.currentPage = obj.Pg;
             ViewBag.Finder = obj.Finder;
             ViewBag.Sort = obj.Sort;
@@ -352,23 +362,21 @@ namespace DemoProject.Controllers
             return PartialView("_Pagination");
         }
 
-        public ActionResult DownloadData(string format, string tableData)
+
+        [HttpPost]
+        public void DownloadData(string format, UserSearchParams obj)
         {
-            List<User> usersData = JsonSerializer.Deserialize<List<User>>(tableData);
+            //List<User> usersData = JsonSerializer.Deserialize<List<User>>(tableData);
+
             var userId = HttpContext.Session.GetInt32("userid");
             if (format == "pdf")
             {
-                _demoreppo.DownLoadPdf(userId, usersData);
+                _demoreppo.DownLoadPdf(userId, obj);
             }
-            else if (format == "excel")
+            else 
             {
-                _demoreppo.DownLoadExcel(userId, usersData);
+                _demoreppo.DownLoadExcel(userId, obj);
             }
-            else
-            {
-                return BadRequest();
-            }
-            return null;
         }
 
         #endregion

@@ -33,8 +33,16 @@ namespace DemoProject.Repository.Interface
 
         public int[] GetColumnWidths(DataTable table);
 
-        public void DownLoadPdf(int? userId, List<User> usersData);
+        public void DownLoadPdf(int? userId, UserSearchParams obj);
 
-        public void DownLoadExcel(int? userId, List<User> usersData);
+        public void DownLoadExcel(int? userId, UserSearchParams obj);
+
+        public List<User> FilterUsersForDownload(UserSearchParams obj);
+
+        public IQueryable<User> ApplySearchFilters(IQueryable<User> query, UserSearchParams obj);
+
+        public IQueryable<User> ApplySorting(IQueryable<User> query, UserSearchParams obj);
+
+        public IQueryable<User> ApplyPagination(IQueryable<User> query, UserSearchParams obj);
     }
 }

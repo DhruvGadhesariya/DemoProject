@@ -8,6 +8,7 @@ using iTextSharp.text.pdf;
 using OfficeOpenXml;
 using System.Data;
 using Azure;
+using System.Drawing;
 
 namespace DemoProject.Repository.Repository
 {
@@ -137,9 +138,17 @@ namespace DemoProject.Repository.Repository
 
         public List<User> FilterUsers(UserSearchParams obj)
         {
-            var pageSize = obj.PageSize;
             var query = _dbcontext.Users.AsQueryable().Where(user => user.DeletedAt == null);
 
+            query = ApplySearchFilters(query, obj);
+            query = ApplySorting(query, obj);
+            query = ApplyPagination(query, obj);
+
+            return query.ToList();
+        }
+
+        public IQueryable<User> ApplySearchFilters(IQueryable<User> query, UserSearchParams obj)
+        {
             if (!string.IsNullOrWhiteSpace(obj.SearchFname))
                 query = query.Where(user => user.Fname.ToLower().Contains(obj.SearchFname.ToLower()));
 
@@ -149,29 +158,55 @@ namespace DemoProject.Repository.Repository
             if (!string.IsNullOrWhiteSpace(obj.SearchEmail))
                 query = query.Where(user => user.Email.ToLower().Contains(obj.SearchEmail.ToLower()));
 
-            if (obj.Finder == "Fname" && obj.Sort == "up")
-                query = query.OrderBy(user => user.Fname);
+            return query;
+        }
 
-            if (obj.Finder == "Fname" && obj.Sort == "down")
-                query = query.OrderByDescending(user => user.Fname);
+        public IQueryable<User> ApplySorting(IQueryable<User> query, UserSearchParams obj)
+        {
+            if (obj.Finder == "Fname")
+            {
+                query = (obj.Sort == "up")
+                    ? query.OrderBy(user => user.Fname)
+                    : query.OrderByDescending(user => user.Fname);
+            }
 
-            if (obj.Finder == "Lname" && obj.Sort == "up")
-                query = query.OrderBy(user => user.Lname);
+            if (obj.Finder == "Lname")
+            {
+                query = (obj.Sort == "up")
+                    ? query.OrderBy(user => user.Lname)
+                    : query.OrderByDescending(user => user.Lname);
+            }
 
-            if (obj.Finder == "Lname" && obj.Sort == "down")
-                query = query.OrderByDescending(user => user.Lname);
+            if (obj.Finder == "Email")
+            {
+                query = (obj.Sort == "up")
+                    ? query.OrderBy(user => user.Email)
+                    : query.OrderByDescending(user => user.Email);
+            }
 
-            if (obj.Finder == "Email" && obj.Sort == "up")
-                query = query.OrderBy(user => user.Email);
+            return query;
+        }
 
-            if (obj.Finder == "Email" && obj.Sort == "down")
-                query = query.OrderByDescending(user => user.Email);
-
+        public IQueryable<User> ApplyPagination(IQueryable<User> query, UserSearchParams obj)
+        {
+            var pageSize = obj.PageSize;
             if (obj.Pg != 0)
+            {
                 query = query.Skip((obj.Pg - 1) * (int)pageSize).Take((int)pageSize);
+            }
+
+            return query;
+        }
+
+        public List<User> FilterUsersForDownload(UserSearchParams obj)
+        {
+            var pageSize = obj.PageSize;
+            var query = _dbcontext.Users.AsQueryable().Where(user => user.DeletedAt == null);
+
+            query = ApplySearchFilters(query, obj);
+            query = ApplySorting(query, obj);
 
             return query.ToList();
-
         }
         public DataTable GetFilteredData(List<User> filteredUsers)
         {
@@ -213,12 +248,18 @@ namespace DemoProject.Repository.Repository
             return columnWidths;
         }
 
-        public void DownLoadPdf(int? userId, List<User> usersData)
+        public void DownLoadPdf(int? userId, UserSearchParams obj)
         {
             string filename = "filtered_" + userId + "-.pdf";
 
-            var filteredData = GetFilteredData(usersData);
+            var userData = FilterUsersForDownload(obj);
+
+            var filteredData = GetFilteredData(userData);
+
             string filePath = "C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Downloads\\" + filename;
+
+            var pageSize = obj.PageSize; 
+            int currentPage = obj.Pg;
 
             Document document = new Document();
             MemoryStream memoryStream = new MemoryStream();
@@ -229,10 +270,19 @@ namespace DemoProject.Repository.Repository
             PdfPTable table = new PdfPTable(filteredData.Columns.Count);
             table.WidthPercentage = 100;
             table.SetWidths(GetColumnWidths(filteredData));
+            table.DefaultCell.Border = PdfPCell.NO_BORDER;
+            table.SpacingBefore = 10f;
+            table.SpacingAfter = 10f;
+            iTextSharp.text.Font cellFont = FontFactory.GetFont(FontFactory.TIMES_ROMAN, 10, BaseColor.WHITE);
 
             foreach (DataColumn column in filteredData.Columns)
             {
-                PdfPCell cell = new PdfPCell(new Phrase(column.ColumnName));
+                PdfPCell cell = new PdfPCell();
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                cell.VerticalAlignment = Element.ALIGN_MIDDLE;
+                cell.Padding = 5f;
+                cell.BackgroundColor = BaseColor.GRAY;
+                cell.Phrase = new Phrase(column.ColumnName, cellFont);
                 table.AddCell(cell);
             }
 
@@ -241,6 +291,8 @@ namespace DemoProject.Repository.Repository
                 foreach (DataColumn column in filteredData.Columns)
                 {
                     PdfPCell cell = new PdfPCell(new Phrase(row[column].ToString()));
+                    cell.HorizontalAlignment = Element.ALIGN_LEFT;
+                    cell.VerticalAlignment = Element.ALIGN_MIDDLE;
                     table.AddCell(cell);
                 }
             }
@@ -248,24 +300,30 @@ namespace DemoProject.Repository.Repository
             document.Close();
         }
 
-        public void DownLoadExcel(int? userId, List<User> usersData)
-        {
-            var filteredData = GetFilteredData(usersData);
+        public void DownLoadExcel(int? userId, UserSearchParams obj)
+        {   
+            var userData = FilterUsersForDownload(obj);
+
+            var filteredData = GetFilteredData(userData);
 
             string fileName = "filtered_" + userId + "-.xlsx";
+
             string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Downloads/", fileName);
 
             using (ExcelPackage package = new ExcelPackage())
             {
                 ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Filtered Data");
-
+            
                 int columnCount = 1;
                 foreach (DataColumn column in filteredData.Columns)
                 {
                     worksheet.Cells[1, columnCount].Value = column.ColumnName;
+                    worksheet.Cells[1, columnCount].Style.Font.Bold = true;
+                    worksheet.Cells[1, columnCount].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    worksheet.Cells[1, columnCount].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
                     columnCount++;
                 }
-
+            
                 int rowCount = 2;
                 foreach (DataRow row in filteredData.Rows)
                 {
@@ -277,6 +335,10 @@ namespace DemoProject.Repository.Repository
                     }
                     rowCount++;
                 }
+            
+                worksheet.Cells[worksheet.Dimension.Address].Style.Font.Size = 12;
+                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+            
                 byte[] fileContents = package.GetAsByteArray();
                 System.IO.File.WriteAllBytes(filePath, fileContents);
             }

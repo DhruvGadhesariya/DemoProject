@@ -1,6 +1,6 @@
 ﻿
 function Search(pg, finder, sort) {
-    debugger
+    
     var pagesize = $('#selectentities').find(":selected").val();
     var obj = GetFilter();
 
@@ -42,57 +42,35 @@ function Search(pg, finder, sort) {
         }
     })
 }
-function downloadData(format) {
+function downloadData(format, pageSize, currentPage) {
     
     var selectedFormat = format;
-    var list = getTableData();
+    var obj = GetFilter();
 
     $.ajax({
         url: '/Home/DownloadData',
-        type: 'GET',
+        type: 'POST',
         data: {
             format: selectedFormat,
-            tableData: list
+            SearchFname: obj.SearchFname,
+            SearchLname: obj.SearchLname,
+            SearchEmail: obj.SearchEmail,
+            PageSize: pageSize,
+            Pg: currentPage
         },
-        success: function (response) {
+        success: function () {
             console.log('Download success');
         },
-        error: function (error) {
+        error: function () {
             console.log('Download failed');
         }
     });
 }
-function getTableData() {
-
-    var table = document.getElementById("myTable");
-    var tableData = [];
-
-    for (var i = 2; i < table.rows.length; i++) {
-        var row = table.rows[i];
-        var rowData = {};
-
-        var fname = row.cells[0].innerText;
-        var lname = row.cells[1].innerText;
-        var email = row.cells[2].innerText;
-
-        rowData.Fname = fname;
-        rowData.Lname = lname;
-        rowData.Email = email;
-
-        tableData.push(rowData);
-    }
-
-    var jsonData = JSON.stringify(tableData);
-
-    return jsonData;
-}
-
 function GetFilter() {
     var SearchFname = $("input[name='SearchFname']").val();
     var SearchLname = $("input[name='SearchLname']").val();
     var SearchEmail = $("input[name='SearchEmail']").val();
 
-    console.log(SearchFname);
     var searches = [];
 
     if (SearchFname.length > 0) {
@@ -217,8 +195,7 @@ function GetUserData(userId) {
             
             $("#selectCityLists").empty();
             document.getElementById('selectCityLists').innerHTML += `<option selected value="${json[0].CityId}">${json[0].CityName} </option>
-                `;
-            
+                `;  
             document.getElementById('countries').value = json[0].CountryId;
             document.getElementById('userid').value = json[0].UserId;
         }

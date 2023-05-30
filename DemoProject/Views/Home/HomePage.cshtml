@@ -43,15 +43,21 @@
                     <button class="btn  savePassword me-3 ms-5  dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-download"></i> &nbsp; Download
                     </button>
+                    @{
 
+                        string finder = @ViewBag.Finder;
+                        string sort = @ViewBag.Sort;
+                        int currentPage = ViewBag.currentPage;
+                        int pageSize = @ViewBag.pagesize;
+                    }
                     <ul class="dropdown-menu">
                         <li>
-                            <a class="dropdown-item" href="~/Downloads/filtered_@ViewBag.UserId-.pdf" target="_blank" onclick="Search(); downloadData('pdf');">
+                            <a class="dropdown-item" href="~/Downloads/filtered_@ViewBag.UserId-.pdf" target="_blank" onclick="Search(); downloadData('pdf',@pageSize,@currentPage);">
                                 <i class="bi bi-download"></i> to Pdf
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="@Url.Content("~/Downloads/filtered_" + ViewBag.UserId + "-.xlsx")" target="_blank" onclick="Search(); downloadData('excel')">
+                            <a class="dropdown-item" href="@Url.Content("~/Downloads/filtered_" + ViewBag.UserId + "-.xlsx")" target="_blank" onclick="Search(); downloadData('excel',@pageSize,@currentPage)">
                                 <i class="bi bi-download"></i> to Excel
                             </a>
                         </li>
@@ -197,6 +203,7 @@
                         <option value="5">5</option>
                         <option value="10">10</option>
                         <option value="15">15</option>
+                        <option value="100">All</option>
                     </select>
                     <span>
                         entities
