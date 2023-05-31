@@ -6,21 +6,24 @@ using System.Data;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using OfficeOpenXml;
-using System.Data;
-using Azure;
 using System.Drawing;
 
 namespace DemoProject.Repository.Repository
 {
     public class DemoRepository : IDemoRepository
     {
+        #region Variables
         public readonly DemoDbContext _dbcontext;
+        #endregion
 
+        #region Constructor
         public DemoRepository(DemoDbContext dbcontext)
         {
             _dbcontext = dbcontext;
         }
+        #endregion
 
+        #region Validate date and email
         public bool IsWithinFiveMinutes(DateTime dateTimeToCheck)
         {
             DateTime currentDateTime = DateTime.Now;
@@ -41,7 +44,9 @@ namespace DemoProject.Repository.Repository
                 return false;
             }
         }
+        #endregion
 
+        #region User
         public bool AddUser(UserVerifyViewmodel model)
         {
             var check = _dbcontext.Users.FirstOrDefault(a => a.Email.ToLower() == model.Email.ToLower());
@@ -92,6 +97,7 @@ namespace DemoProject.Repository.Repository
             _dbcontext.SaveChanges();
 
         }
+
         public IQueryable GetUserDataForAdmin(long userId)
         {
             var query = from u in _dbcontext.Users
@@ -111,6 +117,7 @@ namespace DemoProject.Repository.Repository
 
             return query;
         }
+
         public void editUserByAdmin(User user)
         {
             var check = _dbcontext.Users.Where(a => a.DeletedAt == null).FirstOrDefault(a => a.UserId == user.UserId);
@@ -135,7 +142,9 @@ namespace DemoProject.Repository.Repository
 
             _dbcontext.SaveChanges();
         }
+        #endregion
 
+        #region Filters
         public List<User> FilterUsers(UserSearchParams obj)
         {
             var query = _dbcontext.Users.AsQueryable().Where(user => user.DeletedAt == null);
@@ -208,6 +217,11 @@ namespace DemoProject.Repository.Repository
 
             return query.ToList();
         }
+
+        #endregion
+
+
+        #region Download pdf and excel logic
         public DataTable GetFilteredData(List<User> filteredUsers)
         {
             DataTable table = new DataTable();
@@ -257,9 +271,6 @@ namespace DemoProject.Repository.Repository
             var filteredData = GetFilteredData(userData);
 
             string filePath = "C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Downloads\\" + filename;
-
-            var pageSize = obj.PageSize; 
-            int currentPage = obj.Pg;
 
             Document document = new Document();
             MemoryStream memoryStream = new MemoryStream();
@@ -343,5 +354,14 @@ namespace DemoProject.Repository.Repository
                 System.IO.File.WriteAllBytes(filePath, fileContents);
             }
         }
+        #endregion
+
+        #region OrderProducts 
+
+        public void OrderProducts(long ProductId, long CountryId, long CityId , int? userId)
+        {
+
+        }
+        #endregion
     }
 }

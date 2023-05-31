@@ -165,7 +165,8 @@ namespace DemoProject.Controllers
 
         #endregion
 
-        #region SendOTP
+        #region SendOTP 
+        [Route("Home/SendEmailAsync")]
         public Task SendEmailAsync(string email, long otp)
         {
             var subject = "Otp Verification for Registration";
@@ -258,6 +259,7 @@ namespace DemoProject.Controllers
             ViewBag.usersList = list;
             ViewBag.pagesize = 5;
             ViewBag.UserId = HttpContext.Session.GetInt32("userid");
+            ViewBag.Products = _dbcontext.Products.ToList();
             return View();
         }
 
@@ -381,6 +383,14 @@ namespace DemoProject.Controllers
 
         #endregion
 
+        #region Orders
+
+        public void OrderProduct(long ProductId , long CountryId , long CityId)
+        {
+            var userId = HttpContext.Session.GetInt32("userid");
+            _demoreppo.OrderProducts(ProductId, CountryId, CityId, userId);
+        }
+        #endregion
         #region Privacy and error
         public IActionResult Privacy()
         {

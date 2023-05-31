@@ -24,4 +24,6 @@ public partial class User
     public long? Phonenumber { get; set; }
 
     public DateTime? DeletedAt { get; set; }
+
+    public DateTime? UtcTime { get; set; }
 }

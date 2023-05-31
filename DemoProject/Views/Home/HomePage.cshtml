@@ -38,8 +38,76 @@
         <div class="row mt-3 ms-1">
             <div class="d-flex justify-content-between p-0 w-75" role="search">
                 <span class="pagetitle fs-3 fw-bold me-auto">User</span>
+                <button type="button" class="btn savePassword " data-bs-toggle="modal" data-bs-target="#addProducts"> &#43; Order</button>
+
+                <div class="modal fade" id="addProducts" tabindex="-1" aria-labelledby="addProductsLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addSheetLabel">Order Products</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form class="form-example mt-2" method="post" id="userAdd">
+                                
+                                 <div class="row form-group">
+                                    <div class="col">
+                                        <span class="fs-4">Country<span class="text-danger">*</span></span>
+                                        <select class="form-select row-cols-auto my-2 " aria-label="Default select example" id="products">
+
+                                            @foreach (var obj in @ViewBag.Products)
+                                            {
+                                                <option value="@obj.ProductId"> @obj.ProductName</option>
+                                            }
+                                        </select>
+
+                                    </div>
+                                </div>
+                                <div class="row form-group">
+                                    <div class="col">
+                                        <span class="fs-4">Country<span class="text-danger">*</span></span>
+                                        <select class="form-select row-cols-auto my-2 " aria-label="Default select example" id="ucountries" onchange="GetCity()">
+
+                                            @foreach (var obj in @ViewBag.countries)
+                                            {
+                                                <option value="@obj.CountryId"> @obj.Name</option>
+                                            }
+                                        </select>
+
+                                    </div>
+                                    <div class="col">
+                                        <span class="fs-4">City<span class="text-danger">*</span></span>
+                                        <select class="form-select row-cols-auto my-2 " aria-label="Default select example" id="selectCityList">
+                                        </select>
+                                    </div>
+
+                                </div>
+
+                                <div class="mt-3 d-flex justify-content-end">
+                                    <button class="btn skill"
+                                            type="button"
+                                            data-bs-dismiss="modal" aria-label="Close" onclick="clearModal()">
+                                        Cancle
+                                    </button>
+
+                                    <button class="btn savePassword ms-2"
+                                            type="button"
+                                            id="submit"
+                                            onclick="AddProducts();">
+                                        Submit
+                                    </button>
+                                </div>
+
+
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
 
                 <div class="dropdown">
+
                     <button class="btn  savePassword me-3 ms-5  dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-download"></i> &nbsp; Download
                     </button>
@@ -229,7 +297,7 @@
     .btn.savePassword {
         border: 2px solid black;
         border-radius: 25px;
-        color:black;
+        color: black;
         padding: 8px 33px 8px 33px;
     }
 

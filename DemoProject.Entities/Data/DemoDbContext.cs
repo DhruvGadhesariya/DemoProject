@@ -20,6 +20,10 @@ public partial class DemoDbContext : DbContext
 
     public virtual DbSet<Country> Countries { get; set; }
 
+    public virtual DbSet<Order> Orders { get; set; }
+
+    public virtual DbSet<Product> Products { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserOtp> UserOtps { get; set; }
@@ -51,6 +55,9 @@ public partial class DemoDbContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
+            entity.Property(e => e.UtcTime)
+                .HasColumnType("datetime")
+                .HasColumnName("UTC_time");
 
             entity.HasOne(d => d.Country).WithMany(p => p.Cities)
                 .HasForeignKey(d => d.CountryId)
@@ -84,6 +91,34 @@ public partial class DemoDbContext : DbContext
                 .HasColumnName("updated_at");
         });
 
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.Property(e => e.OrderId).HasColumnName("Order_id");
+            entity.Property(e => e.CityId).HasColumnName("City_id");
+            entity.Property(e => e.CountryId).HasColumnName("Country_id");
+            entity.Property(e => e.OrderdAt)
+                .HasColumnType("datetime")
+                .HasColumnName("Orderd_at");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.UtcTime)
+                .HasColumnType("datetime")
+                .HasColumnName("UTC_time");
+
+            entity.HasOne(d => d.City).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.CityId)
+                .HasConstraintName("FK_Orders_Products");
+        });
+
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.ProductName)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("product_name");
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("User");
@@ -112,6 +147,9 @@ public partial class DemoDbContext : DbContext
                 .HasColumnName("password");
             entity.Property(e => e.Phonenumber).HasColumnName("phonenumber");
             entity.Property(e => e.Pincode).HasColumnName("pincode");
+            entity.Property(e => e.UtcTime)
+                .HasColumnType("datetime")
+                .HasColumnName("UTC_time");
         });
 
         modelBuilder.Entity<UserOtp>(entity =>

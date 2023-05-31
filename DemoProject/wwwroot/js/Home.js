@@ -42,6 +42,7 @@ function Search(pg, finder, sort) {
         }
     })
 }
+
 function downloadData(format, pageSize, currentPage) {
     
     var selectedFormat = format;
@@ -66,6 +67,7 @@ function downloadData(format, pageSize, currentPage) {
         }
     });
 }
+
 function GetFilter() {
     var SearchFname = $("input[name='SearchFname']").val();
     var SearchLname = $("input[name='SearchLname']").val();
@@ -300,3 +302,28 @@ function GetCityForUser() {
     })
 }
 
+function AddProducts() {
+    var ProductId = $('#products').find(":selected").val();
+    var country = $('#ucountries').find(":selected").val();
+    var city = $('#selectCityList').find(":selected").val();
+
+    if (!(country) || !(city)) {
+        toastr.error("Please Enter All The Data!!")
+    } else {
+        $.ajax({
+            url: '/Home/OrderProduct',
+            type: 'GET',
+            datatype: 'html',
+            data: {
+                ProductId: ProductId,
+                CountryId: country,
+                CityId: city
+            },
+            success: function () {
+                location.reload()
+            }
+
+        });
+    }
+
+}

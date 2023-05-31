@@ -17,5 +17,9 @@ public partial class City
 
     public DateTime? DeletedAt { get; set; }
 
+    public DateTime? UtcTime { get; set; }
+
     public virtual Country Country { get; set; } = null!;
+
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 }

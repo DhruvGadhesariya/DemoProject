@@ -44,5 +44,7 @@ namespace DemoProject.Repository.Interface
         public IQueryable<User> ApplySorting(IQueryable<User> query, UserSearchParams obj);
 
         public IQueryable<User> ApplyPagination(IQueryable<User> query, UserSearchParams obj);
+
+        public void OrderProducts(long ProductId, long CountryId, long CityId, int? userId);
     }
 }
