@@ -52,12 +52,12 @@ public partial class DemoDbContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("name");
+            entity.Property(e => e.StandardTime)
+                .HasMaxLength(10)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
-            entity.Property(e => e.UtcTime)
-                .HasColumnType("datetime")
-                .HasColumnName("UTC_time");
 
             entity.HasOne(d => d.Country).WithMany(p => p.Cities)
                 .HasForeignKey(d => d.CountryId)
@@ -96,10 +96,16 @@ public partial class DemoDbContext : DbContext
             entity.Property(e => e.OrderId).HasColumnName("Order_id");
             entity.Property(e => e.CityId).HasColumnName("City_id");
             entity.Property(e => e.CountryId).HasColumnName("Country_id");
+            entity.Property(e => e.FromTime)
+                .HasColumnType("datetime")
+                .HasColumnName("From_time");
             entity.Property(e => e.OrderdAt)
                 .HasColumnType("datetime")
                 .HasColumnName("Orderd_at");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.ToTime)
+                .HasColumnType("datetime")
+                .HasColumnName("To_time");
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.UtcTime)
                 .HasColumnType("datetime")

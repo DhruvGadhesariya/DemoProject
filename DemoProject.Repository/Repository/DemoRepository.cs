@@ -7,6 +7,10 @@ using iTextSharp.text;
 using iTextSharp.text.pdf;
 using OfficeOpenXml;
 using System.Drawing;
+using TimeZoneNames;
+using NodaTime;
+using NodaTime.TimeZones;
+using System.Globalization;
 
 namespace DemoProject.Repository.Repository
 {
@@ -312,7 +316,7 @@ namespace DemoProject.Repository.Repository
         }
 
         public void DownLoadExcel(int? userId, UserSearchParams obj)
-        {   
+        {
             var userData = FilterUsersForDownload(obj);
 
             var filteredData = GetFilteredData(userData);
@@ -324,7 +328,7 @@ namespace DemoProject.Repository.Repository
             using (ExcelPackage package = new ExcelPackage())
             {
                 ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Filtered Data");
-            
+
                 int columnCount = 1;
                 foreach (DataColumn column in filteredData.Columns)
                 {
@@ -334,7 +338,7 @@ namespace DemoProject.Repository.Repository
                     worksheet.Cells[1, columnCount].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
                     columnCount++;
                 }
-            
+
                 int rowCount = 2;
                 foreach (DataRow row in filteredData.Rows)
                 {
@@ -346,10 +350,10 @@ namespace DemoProject.Repository.Repository
                     }
                     rowCount++;
                 }
-            
+
                 worksheet.Cells[worksheet.Dimension.Address].Style.Font.Size = 12;
                 worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
-            
+
                 byte[] fileContents = package.GetAsByteArray();
                 System.IO.File.WriteAllBytes(filePath, fileContents);
             }
@@ -358,9 +362,82 @@ namespace DemoProject.Repository.Repository
 
         #region OrderProducts 
 
-        public void OrderProducts(long ProductId, long CountryId, long CityId , int? userId)
+        public void OrderProducts(long ProductId, long CountryId, long CityId, int? userId, DateTime From, DateTime To)
+        {
+            // Convert "From" time to Indian UTC time
+            DateTime fromTimeUtc = TimeZoneInfo.ConvertTimeToUtc(From, TimeZoneInfo.Utc);
+            DateTime indianFromTime = TimeZoneInfo.ConvertTime(fromTimeUtc, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+
+            // Convert "To" time to Indian UTC time
+            DateTime toTimeUtc = TimeZoneInfo.ConvertTimeToUtc(To, TimeZoneInfo.Utc);
+            DateTime indianToTime = TimeZoneInfo.ConvertTime(toTimeUtc, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+
+            bool hasOverlappingOrders = _dbcontext.Orders.Any(order =>
+                                        order.CountryId == CountryId &&
+                                        order.CityId == CityId &&
+                                        ((indianFromTime >= order.FromTime && indianFromTime <= order.ToTime) ||
+                                         (indianToTime >= order.FromTime && indianToTime <= order.ToTime)));
+
+            if (!hasOverlappingOrders)
+            {
+                // Get the UTC time from the country and city
+                DateTime utcTime = GetCountryCityUtcTimeAsync(CountryId, CityId);
+
+                Order order = new Order();
+                order.ProductId = ProductId;
+                order.CountryId = CountryId;
+                order.CityId = CityId;
+                order.UserId = userId;
+                order.UtcTime = utcTime;
+                order.FromTime = indianFromTime;
+                order.ToTime = indianToTime;
+
+                _dbcontext.Orders.Add(order);
+                _dbcontext.SaveChanges();
+            }
+            
+        }
+
+        public DateTime GetCountryCityUtcTimeAsync(long countryId, long cityId)
         {
 
+            string countryName = _dbcontext.Countries.Find(countryId).Name;
+            string cityName = _dbcontext.Cities.FirstOrDefault(A => A.CityId == cityId && A.CountryId == countryId).Name;
+
+            string englishCountryName = new RegionInfo("en-US").EnglishName;
+
+            RegionInfo regionInfo = CultureInfo.GetCultures(CultureTypes.SpecificCultures)
+                                               .Select(c => new RegionInfo(c.Name))
+                                               .FirstOrDefault(r => r.EnglishName.Equals(countryName, StringComparison.OrdinalIgnoreCase));
+
+            IEnumerable<TimeZoneInfo> timeZones = TimeZoneInfo.GetSystemTimeZones()
+                                                  .Where(tz => tz.DisplayName.Contains(cityName) || tz.DisplayName.Contains(countryName));
+
+            string countryCode = regionInfo?.TwoLetterISORegionName;
+
+            TzdbDateTimeZoneSource timeZoneSource = TzdbDateTimeZoneSource.Default;
+
+            // Get the time zone IDs for the specified country
+            IEnumerable<string> timeZoneIds = timeZoneSource.ZoneLocations
+                                                                            .Where(zone => zone.CountryCode == countryCode)
+                                                                            .Select(zone => zone.ZoneId);
+
+            if(timeZoneIds.Count() == 1)
+            {
+                string timeZoneId = timeZoneIds.FirstOrDefault(id => id.Contains(cityName) || id.Contains(countryName));
+
+                TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
+                return localTime;
+            }
+            else
+            {
+                string timeZoneId = timeZoneIds.FirstOrDefault(id => id.Contains(cityName));
+
+                TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
+                return localTime;
+            }
         }
         #endregion
     }

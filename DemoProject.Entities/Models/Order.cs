@@ -19,5 +19,9 @@ public partial class Order
 
     public DateTime? UtcTime { get; set; }
 
+    public DateTime? FromTime { get; set; }
+
+    public DateTime? ToTime { get; set; }
+
     public virtual City? City { get; set; }
 }

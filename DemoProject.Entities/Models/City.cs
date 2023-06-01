@@ -17,7 +17,7 @@ public partial class City
 
     public DateTime? DeletedAt { get; set; }
 
-    public DateTime? UtcTime { get; set; }
+    public string? StandardTime { get; set; }
 
     public virtual Country Country { get; set; } = null!;
 

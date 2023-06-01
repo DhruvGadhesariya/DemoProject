@@ -177,6 +177,7 @@ namespace DemoProject.Controllers
                 UseDefaultCredentials = false,
                 Credentials = new NetworkCredential("19it.dhruvgadhesariya@adit.ac.in", "Adit@884369")
             };
+
             return client.SendMailAsync(new MailMessage(from: "19it.dhruvgadhesariya@adit.ac.in",
                                                         to: email,
                                                         subject,
@@ -385,10 +386,10 @@ namespace DemoProject.Controllers
 
         #region Orders
 
-        public void OrderProduct(long ProductId , long CountryId , long CityId)
+        public void OrderProduct(long ProductId , long CountryId , long CityId , DateTime From , DateTime To)
         {
             var userId = HttpContext.Session.GetInt32("userid");
-            _demoreppo.OrderProducts(ProductId, CountryId, CityId, userId);
+            _demoreppo.OrderProducts(ProductId, CountryId, CityId, userId , From , To);
         }
         #endregion
         #region Privacy and error

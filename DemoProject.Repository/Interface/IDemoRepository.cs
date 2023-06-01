@@ -45,6 +45,9 @@ namespace DemoProject.Repository.Interface
 
         public IQueryable<User> ApplyPagination(IQueryable<User> query, UserSearchParams obj);
 
-        public void OrderProducts(long ProductId, long CountryId, long CityId, int? userId);
+        public void OrderProducts(long ProductId, long CountryId, long CityId, int? userId, DateTime From, DateTime To);
+
+        public DateTime GetCountryCityUtcTimeAsync(long countryId, long cityId);
+
     }
 }

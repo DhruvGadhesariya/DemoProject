@@ -306,6 +306,8 @@ function AddProducts() {
     var ProductId = $('#products').find(":selected").val();
     var country = $('#ucountries').find(":selected").val();
     var city = $('#selectCityList').find(":selected").val();
+    var from = $('#from').val();
+    var to = $('#to').val();
 
     if (!(country) || !(city)) {
         toastr.error("Please Enter All The Data!!")
@@ -317,7 +319,9 @@ function AddProducts() {
             data: {
                 ProductId: ProductId,
                 CountryId: country,
-                CityId: city
+                CityId: city,
+                From: from,
+                To: to
             },
             success: function () {
                 location.reload()
