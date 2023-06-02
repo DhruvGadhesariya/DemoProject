@@ -45,9 +45,20 @@ namespace DemoProject.Repository.Interface
 
         public IQueryable<User> ApplyPagination(IQueryable<User> query, UserSearchParams obj);
 
-        public void OrderProducts(long ProductId, long CountryId, long CityId, int? userId, DateTime From, DateTime To);
+        public bool OrderProducts(OrderParams order, int? userId);
 
-        public DateTime GetCountryCityUtcTimeAsync(long countryId, long cityId);
+        public string GetCountryCityUtcTimeAsync(long countryId, long cityId);
 
+        public DateTime GetIndianLocalTime(DateTime utcTime, TimeSpan timeDifference);
+
+        public bool CheckForOverlappingOrders(long ProductId, DateTime indianFromTime, DateTime indianToTime);
+
+        public long GenerateRandomOtp();
+
+        public void CreateUserOtp(string email, long otp, DateTime createdAt, DateTime expiredAt);
+
+        public void UpdateUserOtp(UserOtp userOtp, long otp, DateTime createdAt, DateTime expiredAt);
+
+        public void AddNewOrder(OrderParams order, int? userId, DateTime indianFromTime, DateTime indianToTime);
     }
 }

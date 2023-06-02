@@ -5,8 +5,16 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js">
     </script>
 <script type="text/javascript">
+    toastr.options = {
+"positionClass": "toast-bottom-right"
+}
 toastr.success('@TempData["success"]')
 </script>
+<style>
+        .toast {
+            background-color: black !important;
+        }
+    </style>
 }
 @if (TempData["error"] != null)
 {
@@ -15,8 +23,17 @@ toastr.success('@TempData["success"]')
 <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js">
     </script>
 <script type="text/javascript">
+    toastr.options = {
+"positionClass": "toast-bottom-right"
+}
 toastr.error('@TempData["error"]');
+
 </script>
+<style>
+        .toast {
+            background-color: black !important;
+        }
+    </style>
 }
 @if (TempData["info"] != null)
 {

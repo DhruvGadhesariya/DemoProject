@@ -326,8 +326,6 @@ function AddProducts() {
             success: function () {
                 location.reload()
             }
-
         });
     }
-
 }

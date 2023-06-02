@@ -90,36 +90,20 @@ namespace DemoProject.Controllers
 
         public IActionResult OtpVerification(RegistrationModel model)
         {
-            Random random = new Random();
-            long otp = random.Next(100000, 999999);
-
+            long otp = _demoreppo.GenerateRandomOtp();
             SendEmailAsync(model.Email, otp);
 
-            var checkexists = _dbcontext.UserOtps.FirstOrDefault(a => a.Email.ToLower() == model.Email.ToLower());
+            UserOtp existingOtp = _dbcontext.UserOtps.FirstOrDefault(a => a.Email.ToLower() == model.Email.ToLower());
             DateTime currentDateTime = DateTime.Now;
             DateTime expirationDateTime = currentDateTime.AddMinutes(5);
 
-            if (checkexists == null)
+            if (existingOtp == null)
             {
-                var myotp = new UserOtp();
-                myotp.Email = model.Email;
-                myotp.Otp = otp;
-                myotp.CreatedAt = DateTime.Now;
-                myotp.ExpiredAt = expirationDateTime;
-                _dbcontext.UserOtps.Add(myotp);
-                _dbcontext.SaveChanges();
+                _demoreppo.CreateUserOtp(model.Email, otp, currentDateTime, expirationDateTime);
             }
             else
             {
-                DateTime date = DateTime.Now;
-                DateTime expdate = currentDateTime.AddMinutes(5);
-
-                checkexists.CreatedAt = DateTime.Now;
-                checkexists.ExpiredAt = expdate;
-                checkexists.Otp = otp;
-
-                _dbcontext.Update(checkexists);
-                _dbcontext.SaveChanges();
+                _demoreppo.UpdateUserOtp(existingOtp, otp, currentDateTime, expirationDateTime);
             }
 
             return View(model);
@@ -386,10 +370,18 @@ namespace DemoProject.Controllers
 
         #region Orders
 
-        public void OrderProduct(long ProductId , long CountryId , long CityId , DateTime From , DateTime To)
+        public void OrderProduct(OrderParams order)
         {
             var userId = HttpContext.Session.GetInt32("userid");
-            _demoreppo.OrderProducts(ProductId, CountryId, CityId, userId , From , To);
+            bool orderd =  _demoreppo.OrderProducts(order , userId);
+            if (orderd)
+            {
+                TempData["success"] = "Ordered sucessfully";
+            }
+            else
+            {
+                TempData["error"] = "Detail is InCorrect!!";
+            }
         }
         #endregion
         #region Privacy and error

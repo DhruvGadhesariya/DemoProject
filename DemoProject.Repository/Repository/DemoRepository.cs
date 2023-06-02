@@ -11,6 +11,9 @@ using TimeZoneNames;
 using NodaTime;
 using NodaTime.TimeZones;
 using System.Globalization;
+using System.Net;
+using Newtonsoft.Json.Linq;
+
 
 namespace DemoProject.Repository.Repository
 {
@@ -146,6 +149,36 @@ namespace DemoProject.Repository.Repository
 
             _dbcontext.SaveChanges();
         }
+
+        public long GenerateRandomOtp()
+        {
+            Random random = new Random();
+            return random.Next(100000, 999999);
+        }
+
+        public void CreateUserOtp(string email, long otp, DateTime createdAt, DateTime expiredAt)
+        {
+            var userOtp = new UserOtp()
+            {
+                Email = email,
+                Otp = otp,
+                CreatedAt = createdAt,
+                ExpiredAt = expiredAt
+            };
+
+            _dbcontext.UserOtps.Add(userOtp);
+            _dbcontext.SaveChanges();
+        }
+
+        public void UpdateUserOtp(UserOtp userOtp, long otp, DateTime createdAt, DateTime expiredAt)
+        {
+            userOtp.Otp = otp;
+            userOtp.CreatedAt = createdAt;
+            userOtp.ExpiredAt = expiredAt;
+
+            _dbcontext.Update(userOtp);
+            _dbcontext.SaveChanges();
+        }
         #endregion
 
         #region Filters
@@ -223,7 +256,6 @@ namespace DemoProject.Repository.Repository
         }
 
         #endregion
-
 
         #region Download pdf and excel logic
         public DataTable GetFilteredData(List<User> filteredUsers)
@@ -362,82 +394,88 @@ namespace DemoProject.Repository.Repository
 
         #region OrderProducts 
 
-        public void OrderProducts(long ProductId, long CountryId, long CityId, int? userId, DateTime From, DateTime To)
+        public bool OrderProducts(OrderParams order , int? userId)
         {
-            // Convert "From" time to Indian UTC time
-            DateTime fromTimeUtc = TimeZoneInfo.ConvertTimeToUtc(From, TimeZoneInfo.Utc);
-            DateTime indianFromTime = TimeZoneInfo.ConvertTime(fromTimeUtc, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            string utcTime = GetCountryCityUtcTimeAsync(order.CountryId, order.CityId);
 
-            // Convert "To" time to Indian UTC time
-            DateTime toTimeUtc = TimeZoneInfo.ConvertTimeToUtc(To, TimeZoneInfo.Utc);
-            DateTime indianToTime = TimeZoneInfo.ConvertTime(toTimeUtc, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            TimeZoneInfo cityTimeZone = TimeZoneInfo.FindSystemTimeZoneById(utcTime);
+            TimeZoneInfo indiatimezone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
 
-            bool hasOverlappingOrders = _dbcontext.Orders.Any(order =>
-                                        order.CountryId == CountryId &&
-                                        order.CityId == CityId &&
-                                        ((indianFromTime >= order.FromTime && indianFromTime <= order.ToTime) ||
-                                         (indianToTime >= order.FromTime && indianToTime <= order.ToTime)));
+            TimeSpan timeDifference = cityTimeZone.BaseUtcOffset - indiatimezone.BaseUtcOffset;
+            DateTime indianFromTime = GetIndianLocalTime(order.From, timeDifference);
+            DateTime indianToTime = GetIndianLocalTime(order.To, timeDifference);
+
+            bool hasOverlappingOrders = CheckForOverlappingOrders(order.ProductId, indianFromTime, indianToTime);
 
             if (!hasOverlappingOrders)
             {
-                // Get the UTC time from the country and city
-                DateTime utcTime = GetCountryCityUtcTimeAsync(CountryId, CityId);
-
-                Order order = new Order();
-                order.ProductId = ProductId;
-                order.CountryId = CountryId;
-                order.CityId = CityId;
-                order.UserId = userId;
-                order.UtcTime = utcTime;
-                order.FromTime = indianFromTime;
-                order.ToTime = indianToTime;
-
-                _dbcontext.Orders.Add(order);
-                _dbcontext.SaveChanges();
-            }
-            
-        }
-
-        public DateTime GetCountryCityUtcTimeAsync(long countryId, long cityId)
-        {
-
-            string countryName = _dbcontext.Countries.Find(countryId).Name;
-            string cityName = _dbcontext.Cities.FirstOrDefault(A => A.CityId == cityId && A.CountryId == countryId).Name;
-
-            string englishCountryName = new RegionInfo("en-US").EnglishName;
-
-            RegionInfo regionInfo = CultureInfo.GetCultures(CultureTypes.SpecificCultures)
-                                               .Select(c => new RegionInfo(c.Name))
-                                               .FirstOrDefault(r => r.EnglishName.Equals(countryName, StringComparison.OrdinalIgnoreCase));
-
-            IEnumerable<TimeZoneInfo> timeZones = TimeZoneInfo.GetSystemTimeZones()
-                                                  .Where(tz => tz.DisplayName.Contains(cityName) || tz.DisplayName.Contains(countryName));
-
-            string countryCode = regionInfo?.TwoLetterISORegionName;
-
-            TzdbDateTimeZoneSource timeZoneSource = TzdbDateTimeZoneSource.Default;
-
-            // Get the time zone IDs for the specified country
-            IEnumerable<string> timeZoneIds = timeZoneSource.ZoneLocations
-                                                                            .Where(zone => zone.CountryCode == countryCode)
-                                                                            .Select(zone => zone.ZoneId);
-
-            if(timeZoneIds.Count() == 1)
-            {
-                string timeZoneId = timeZoneIds.FirstOrDefault(id => id.Contains(cityName) || id.Contains(countryName));
-
-                TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-                DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
-                return localTime;
+                AddNewOrder(order , userId , indianFromTime , indianToTime);
+                return true;
             }
             else
             {
-                string timeZoneId = timeZoneIds.FirstOrDefault(id => id.Contains(cityName));
-
-                TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-                DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
-                return localTime;
+                return false;
             }
+        }
+
+        public void AddNewOrder(OrderParams order , int? userId , DateTime indianFromTime , DateTime indianToTime)
+        {
+            Order newOrder = new Order();
+            newOrder.ProductId = order.ProductId;
+            newOrder.CountryId = order.CountryId;
+            newOrder.CityId = order.CityId;
+            newOrder.UserId = userId;
+            newOrder.FromTime = indianFromTime;
+            newOrder.ToTime = indianToTime;
+
+            _dbcontext.Orders.Add(newOrder);
+            _dbcontext.SaveChanges();
+        }
+
+        public bool CheckForOverlappingOrders(long ProductId, DateTime indianFromTime, DateTime indianToTime)
+        {
+            bool isProductIdValid = _dbcontext.Orders.Any(order => order.ProductId == ProductId);
+
+            if (!isProductIdValid)
+            {
+                return false;
+            }
+
+            bool hasOverlappingOrders = _dbcontext.Orders.Any(order =>
+                order.ProductId != ProductId &&
+                ((indianFromTime >= order.FromTime && indianFromTime <= order.ToTime) ||
+                (indianToTime >= order.FromTime && indianToTime <= order.ToTime)));
+
+            return hasOverlappingOrders;
+        }
+
+        public DateTime GetIndianLocalTime(DateTime utcTime, TimeSpan timeDifference)
+        {
+            if (timeDifference > TimeSpan.Zero)
+            {
+                return utcTime.Subtract(timeDifference);
+            }
+            else if (timeDifference < TimeSpan.Zero)
+            {
+                return utcTime.Add(timeDifference.Duration());
+            }
+            return utcTime;
+        }
+
+        public string GetCountryCityUtcTimeAsync(long countryId, long cityId)
+        {
+            string cityName = _dbcontext.Cities.FirstOrDefault(c => c.CityId == cityId && c.CountryId == countryId)?.Name;
+
+            if (string.IsNullOrEmpty(cityName))
+            {
+                return null;
+            }
+
+            string timeZoneId = TimeZoneInfo
+                                .GetSystemTimeZones()
+                                .FirstOrDefault(tz => tz.DisplayName.Contains(cityName) || tz.DisplayName.Contains(countryId.ToString()))?.Id;
+
+            return timeZoneId;
         }
         #endregion
     }
