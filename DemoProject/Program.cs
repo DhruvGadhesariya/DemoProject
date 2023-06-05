@@ -19,6 +19,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<DemoDbContext>();
 builder.Services.AddScoped<IDemoRepository , DemoRepository>();
+builder.Services.AddScoped<IProductRepository , ProductRepository>();
 builder.Services.AddSession(a =>
 {
     a.IdleTimeout = TimeSpan.FromSeconds(1800);

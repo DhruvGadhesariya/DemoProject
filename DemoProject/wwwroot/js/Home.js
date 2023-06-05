@@ -1,13 +1,13 @@
 ﻿
 function Search(pg, finder, sort) {
-    
+
     var pagesize = $('#selectentities').find(":selected").val();
     var obj = GetFilter();
 
     if (pg == undefined) {
         pg = 1;
     }
-    
+
     console.log(pagesize);
     $.ajax({
         url: "/Home/Search",
@@ -44,7 +44,7 @@ function Search(pg, finder, sort) {
 }
 
 function downloadData(format, pageSize, currentPage) {
-    
+
     var selectedFormat = format;
     var obj = GetFilter();
 
@@ -92,7 +92,7 @@ function GetFilter() {
 
 function GetCity() {
 
-    var countryId = $('#ucountries').find(":selected").val();   
+    var countryId = $('#ocountries').find(":selected").val();
     $.ajax({
 
         url: "/Home/GetCity",
@@ -105,11 +105,11 @@ function GetCity() {
         success: function (data) {
 
             data = JSON.parse(data);
-            $("#selectCityList").empty();
+            $("#CityForOrder").empty();
 
             data.forEach((name) => {
 
-                document.getElementById("selectCityList").innerHTML += `
+                document.getElementById("CityForOrder").innerHTML += `
                                                            <option value="${name.CityId}" name="CityId">
                                                                    ${name.Name}
                                                            </option>`;
@@ -159,7 +159,12 @@ function addUser() {
 }
 
 function clearModal() {
+    
     $("#userAdd").trigger("reset");
+    $("#selectCityList").empty();
+    $("#addOrder").trigger("reset");
+    $('#timestatus').html("");
+    $("#CityForOrder").empty();
 }
 
 function GetUserData(userId) {
@@ -194,10 +199,10 @@ function GetUserData(userId) {
             } else {
                 document.getElementById('email').value = "";
             }
-            
+
             $("#selectCityLists").empty();
             document.getElementById('selectCityLists').innerHTML += `<option selected value="${json[0].CityId}">${json[0].CityName} </option>
-                `;  
+                `;
             document.getElementById('countries').value = json[0].CountryId;
             document.getElementById('userid').value = json[0].UserId;
         }
@@ -214,7 +219,7 @@ function AfterEditAddUser() {
     var cityId = $('#selectCityLists').find(":selected").val();
     var userId = $('#userid').val().trim();
 
-     if (!(fname) || !(lname) || !(email) || !(countryId) || !(cityId)) {
+    if (!(fname) || !(lname) || !(email) || !(countryId) || !(cityId)) {
         toastr.error("Please Enter All The Data!!");
     }
     else {
@@ -241,34 +246,34 @@ function AfterEditAddUser() {
 
 function removeByAdmin(Id) {
 
-   
-        if (confirm("Do you want to remove This User ?")) {
-            console.log(Id);
 
-            $.ajax({
+    if (confirm("Do you want to remove This User ?")) {
+        console.log(Id);
 
-                url: '/Home/RemoveByAdmin',
-                type: 'POST',
-                datatype: 'html',
-                data: {
-                    Id: Id,
-                },
-                success: function () {
-                    location.reload();
-                }
+        $.ajax({
 
-            });
-        }
-        else {
-            toastr.error("You have clicked on cancel!!")
-        }
+            url: '/Home/RemoveByAdmin',
+            type: 'POST',
+            datatype: 'html',
+            data: {
+                Id: Id,
+            },
+            success: function () {
+                location.reload();
+            }
 
-    
+        });
+    }
+    else {
+        toastr.error("You have clicked on cancel!!")
+    }
+
+
 }
 
 function GetCityForUser() {
 
-    var countryId = $('#countries').find(":selected").val();
+    var countryId = $('#ucountries').find(":selected").val();
 
     $.ajax({
 
@@ -282,11 +287,11 @@ function GetCityForUser() {
         success: function (data) {
 
             data = JSON.parse(data);
-            $("#selectCityLists").empty();
+            $("#selectCityList").empty();
 
             data.forEach((name) => {
 
-                document.getElementById("selectCityLists").innerHTML += `
+                document.getElementById("selectCityList").innerHTML += `
                                                                            <option value="${name.CityId}">
                                                                                    ${name.Name}
                                                                            </option>`;
@@ -303,15 +308,14 @@ function GetCityForUser() {
 }
 
 function AddProducts() {
+    debugger
     var ProductId = $('#products').find(":selected").val();
-    var country = $('#ucountries').find(":selected").val();
-    var city = $('#selectCityList').find(":selected").val();
+    var country = $('#ocountries').find(":selected").val();
+    var city = $('#CityForOrder').find(":selected").val();
     var from = $('#from').val();
     var to = $('#to').val();
 
-    if (!(country) || !(city)) {
-        toastr.error("Please Enter All The Data!!")
-    } else {
+
         $.ajax({
             url: '/Home/OrderProduct',
             type: 'GET',
@@ -323,9 +327,73 @@ function AddProducts() {
                 From: from,
                 To: to
             },
-            success: function () {
-                location.reload()
+            success: function (response) {
+                if (response == "falseTime") {
+                    $('#timestatus').html("Order for this time is already placed!!");
+                    $('#timestatus').css('color', 'red');
+                }
+                else if (response == "notAvailable")
+                {
+                    $('#timestatus').html("Product is not Available for your Country!!");
+                    $('#timestatus').css('color', 'red');
+                }
+                else
+                {
+                    location.reload();
+                    $('#addProducts').modal('hide');
+                    clearModal();
+                }
             }
         });
-    }
+    
+}
+
+function GetCheckedCountryIds(id) {
+
+    //var countryId = [];
+
+    //$('input[name="country"]:checked').each(function () {
+    //    countryId.push(this.id);
+    //});
+
+    $.ajax({
+
+        url: "/Products/GetCity",
+        method: "POST",
+
+        data: {
+            "countryId": id
+        },
+
+        success: function (data) {
+            
+            data = JSON.parse(data);
+            console.log(data);
+            $("#cityListForOrder_" + id).empty();
+
+            data.forEach((name) => {
+
+                document.getElementById("cityListForOrder_" + id).innerHTML += `
+                                                 
+                                                     <div class=" p-0 mx-2 d-flex">
+                                                       <input type="checkbox" class="form-check-input city_${name.CityId}" name="city"  value="${name.Name}" id="${name.CityId}"/>
+                                                       <label class="form-check-label ms-5" for="${name.CityId}">
+                                                          ${name.Name}
+                                                       </label>
+                                                     </div>
+                                                  `;
+            })
+
+
+        },
+        error: function (request, error) {
+            console.log(error);
+        }
+
+
+    });
+}
+
+function AddProductByAdmin() {
+
 }

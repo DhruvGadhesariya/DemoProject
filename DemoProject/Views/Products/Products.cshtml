@@ -1,0 +1,127 @@
+﻿@using DemoProject.Entities.Models
+
+@{
+    Layout = null;
+}
+@model List<Product>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<nav class="navbar navbar-expand-lg navbar-light bg-dark ps-5">
+    <a class="navbar-brand fs-3 fw-bold text-white" href="#">MFA</a><i class="bi bi-key-fill text-white"></i><i class="bi bi-lock-fill text-white"></i>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse w-100 d-flex justify-content-between" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto d-flex align-items-center justify-content-between w-100">
+            <li class="nav-item active ">
+                <a class="nav-link text-white" asp-controller="Home" asp-action="HomePage">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item me-3">
+                <form method="post" asp-controller="Home" asp-action="Logout">
+                    <button type="submit" class="nav-link fs-5 fw-bold text-white">Logout</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div class="container-fluid ms-5"> 
+    <div class="d-flex justify-content-between p-0 w-75 mt-3">
+    <span class="pagetitle fs-3 fw-bold me-auto">Products</span>
+    <button type="button" class="btn savePassword" onclick="location.href='@Url.Action("AddProduct","Products")'"> &#43; Product</button>
+</div>
+<div class="table-responsive">
+    <table class="table mt-5 border shadow-lg table-bordered" style="width:80%" id="myTable">
+        <thead class="px-4 bg-light table-dark">
+            <tr class=" tablehead">
+                <th scope="col">
+                    ProductId
+                    <i class="bi bi-arrow-up" onclick="Search(1,'Fname','up')"></i>
+                    <i class="bi bi-arrow-down" onclick="Search(1,'Fname','down')"></i>
+                </th>
+                <th scope="col">
+                    Name
+                    <i class="bi bi-arrow-up" onclick="Search(1,'Lname','up')"></i>
+                    <i class="bi bi-arrow-down" onclick="Search(1,'Lname','down')"></i>
+                </th>
+                <th scope="col">
+                    Shared
+                    <i class="bi bi-arrow-up" onclick="Search(1,'Email','up')"></i>
+                    <i class="bi bi-arrow-down" onclick="Search(1,'Email','down')"></i>
+                </th>
+                <th scope="col">Action </th>
+            </tr>
+            <tr class="bg-light tablehead">
+                <th scope="col">
+                    <input class="w-50" type="search" name="SearchFname" placeholder="Search" oninput="Search(1,'Fname')">
+                </th>
+                <th scope="col">
+                    <input class="w-50 " type="search" name="SearchLname" placeholder="Search" oninput="Search(1,'Lname')">
+                </th>
+                <th scope="col">
+                    <input class="w-50 " type="search" name="SearchEmail" placeholder="Search" oninput="Search(1,'Email')">
+                </th>
+                <th scope="col">
+                </th>
+            </tr>
+        </thead>
+        <tbody id="dataProducts" class="">
+            @foreach (var item in @Model)
+            {
+                <tr>
+                    <td>@item.ProductId</td>
+                    <td>@item.ProductName</td>
+                    <td>@item.Shared</td>
+                    <td>
+
+                        <button class="btn btn-outline-secondary border-0" data-bs-toggle="modal" data-bs-target="#editUser"> Edit </button>&nbsp;
+                        <button class="btn btn-outline-danger border-0">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="d-flex justify-content-between" style="width: 81%;">
+        <div>
+            <span>
+                show
+            </span>
+            <select id="selectentities" onchange="Search();">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="100">All</option>
+            </select>
+            <span>
+                entities
+            </span>
+        </div>
+        <div id="userpagination">
+
+        </div>
+    </div>
+
+
+</div>
+</div>
+
+<style>
+    .btn.savePassword {
+        border: 2px solid black;
+        border-radius: 25px;
+        color: black;
+        padding: 8px 33px 8px 33px;
+    }
+
+    .btn.skill {
+        border: 2px solid gray;
+        border-radius: 25px;
+        color: #757575;
+        padding: 8px 37px 8px 37px;
+    }
+</style>
+<script src="~/js/Home.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>

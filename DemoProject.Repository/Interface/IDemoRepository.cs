@@ -45,7 +45,7 @@ namespace DemoProject.Repository.Interface
 
         public IQueryable<User> ApplyPagination(IQueryable<User> query, UserSearchParams obj);
 
-        public bool OrderProducts(OrderParams order, int? userId);
+        public string OrderProducts(OrderParams order, int? userId);
 
         public string GetCountryCityUtcTimeAsync(long countryId, long cityId);
 

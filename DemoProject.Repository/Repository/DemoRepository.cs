@@ -394,9 +394,11 @@ namespace DemoProject.Repository.Repository
 
         #region OrderProducts 
 
-        public bool OrderProducts(OrderParams order , int? userId)
+        public string OrderProducts(OrderParams order, int? userId)
         {
+            var checkShared = _dbcontext.Products.FirstOrDefault(a => a.ProductId == order.ProductId).Shared;
             string utcTime = GetCountryCityUtcTimeAsync(order.CountryId, order.CityId);
+            bool isAvailable = _dbcontext.AvailableProducts.Any(a => a.CountryId == order.CountryId && a.ProductId == order.ProductId);
 
             TimeZoneInfo cityTimeZone = TimeZoneInfo.FindSystemTimeZoneById(utcTime);
             TimeZoneInfo indiatimezone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
@@ -405,20 +407,37 @@ namespace DemoProject.Repository.Repository
             DateTime indianFromTime = GetIndianLocalTime(order.From, timeDifference);
             DateTime indianToTime = GetIndianLocalTime(order.To, timeDifference);
 
-            bool hasOverlappingOrders = CheckForOverlappingOrders(order.ProductId, indianFromTime, indianToTime);
-
-            if (!hasOverlappingOrders)
+            if (isAvailable)    
             {
-                AddNewOrder(order , userId , indianFromTime , indianToTime);
-                return true;
+                var product = _dbcontext.Products.FirstOrDefault(a => a.ProductId == order.ProductId);
+
+                if (product.Shared == false)
+                {
+                    AddNewOrder(order, userId, indianFromTime, indianToTime);
+                    return "true";
+                }
+                else
+                {
+                    bool hasOverlappingOrders = CheckForOverlappingOrders(order.ProductId,indianFromTime, indianToTime);
+
+                    if (!hasOverlappingOrders)
+                    {
+                        AddNewOrder(order, userId, indianFromTime, indianToTime);
+                        return "true";
+                    }
+                    else
+                    {
+                        return "falseTime";
+                    }
+                }
             }
             else
             {
-                return false;
-            }
+                return "notAvailable";
+            } 
         }
 
-        public void AddNewOrder(OrderParams order , int? userId , DateTime indianFromTime , DateTime indianToTime)
+        public void AddNewOrder(OrderParams order, int? userId, DateTime indianFromTime, DateTime indianToTime)
         {
             Order newOrder = new Order();
             newOrder.ProductId = order.ProductId;
@@ -441,8 +460,9 @@ namespace DemoProject.Repository.Repository
                 return false;
             }
 
+
             bool hasOverlappingOrders = _dbcontext.Orders.Any(order =>
-                order.ProductId != ProductId &&
+                order.ProductId == ProductId &&
                 ((indianFromTime >= order.FromTime && indianFromTime <= order.ToTime) ||
                 (indianToTime >= order.FromTime && indianToTime <= order.ToTime)));
 
@@ -464,16 +484,26 @@ namespace DemoProject.Repository.Repository
 
         public string GetCountryCityUtcTimeAsync(long countryId, long cityId)
         {
-            string cityName = _dbcontext.Cities.FirstOrDefault(c => c.CityId == cityId && c.CountryId == countryId)?.Name;
+            string countryName = _dbcontext.Countries.Find(countryId).Name;
+            string cityName = _dbcontext.Cities.FirstOrDefault(A => A.CityId == cityId && A.CountryId == countryId).Name;
 
-            if (string.IsNullOrEmpty(cityName))
-            {
-                return null;
-            }
+            RegionInfo regionInfo = CultureInfo.GetCultures(CultureTypes.SpecificCultures)
+                .Select(c => new RegionInfo(c.Name))
+                .FirstOrDefault(r => r.EnglishName.Equals(countryName, StringComparison.OrdinalIgnoreCase));
 
-            string timeZoneId = TimeZoneInfo
-                                .GetSystemTimeZones()
-                                .FirstOrDefault(tz => tz.DisplayName.Contains(cityName) || tz.DisplayName.Contains(countryId.ToString()))?.Id;
+            string countryCode = regionInfo?.TwoLetterISORegionName;
+
+            TzdbDateTimeZoneSource timeZoneSource = TzdbDateTimeZoneSource.Default;
+
+            IEnumerable<string> countryTimeZoneIds = timeZoneSource.ZoneLocations
+                .Where(zone => zone.CountryCode == countryCode)
+                .Select(zone => zone.ZoneId);
+
+            IEnumerable<string> cityTimeZoneIds = timeZoneSource.ZoneLocations
+                .Where(zone => zone.CountryCode == countryCode && zone.ZoneId.Contains(cityName))
+                .Select(zone => zone.ZoneId);
+
+            string timeZoneId = cityTimeZoneIds.FirstOrDefault() ?? countryTimeZoneIds.FirstOrDefault();
 
             return timeZoneId;
         }

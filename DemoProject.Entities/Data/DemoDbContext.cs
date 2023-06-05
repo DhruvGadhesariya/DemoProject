@@ -16,6 +16,8 @@ public partial class DemoDbContext : DbContext
     {
     }
 
+    public virtual DbSet<AvailableProduct> AvailableProducts { get; set; }
+
     public virtual DbSet<City> Cities { get; set; }
 
     public virtual DbSet<Country> Countries { get; set; }
@@ -34,6 +36,17 @@ public partial class DemoDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AvailableProduct>(entity =>
+        {
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CountryId).HasColumnName("Country_id");
+            entity.Property(e => e.ProductId).HasColumnName("Product_id");
+
+            entity.HasOne(d => d.Country).WithMany(p => p.AvailableProducts)
+                .HasForeignKey(d => d.CountryId)
+                .HasConstraintName("FK_AvailableProducts_Products");
+        });
+
         modelBuilder.Entity<City>(entity =>
         {
             entity.HasKey(e => e.CityId).HasName("PK__city__031491A8B3B49800");
@@ -53,7 +66,7 @@ public partial class DemoDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("name");
             entity.Property(e => e.StandardTime)
-                .HasMaxLength(10)
+                .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("datetime")

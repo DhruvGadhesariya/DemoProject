@@ -370,18 +370,27 @@ namespace DemoProject.Controllers
 
         #region Orders
 
-        public void OrderProduct(OrderParams order)
+        public string OrderProduct(OrderParams order)
         {
             var userId = HttpContext.Session.GetInt32("userid");
-            bool orderd =  _demoreppo.OrderProducts(order , userId);
-            if (orderd)
+            string orderd =  _demoreppo.OrderProducts(order , userId);
+            if (orderd == "true")
             {
-                TempData["success"] = "Ordered sucessfully";
+                TempData["success"] = "Order Placed Successfully!!";
+                return "true";
             }
             else
             {
-                TempData["error"] = "Detail is InCorrect!!";
+                if (orderd == "falseTime")
+                {
+                    return "falseTime";
+                }
+                else if(orderd == "notAvailable")
+                {
+                    return "notAvailable";
+                }
             }
+            return "";
         }
         #endregion
         #region Privacy and error
