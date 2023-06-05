@@ -28,7 +28,7 @@
         </ul>
     </div>
 </nav>
-<div class="container-fluid ms-5"> 
+<div class="container ms-5"> 
     <div class="d-flex justify-content-between p-0 w-75 mt-3">
     <span class="pagetitle fs-3 fw-bold me-auto">Products</span>
     <button type="button" class="btn savePassword" onclick="location.href='@Url.Action("AddProduct","Products")'"> &#43; Product</button>
@@ -77,7 +77,7 @@
                     <td>@item.Shared</td>
                     <td>
 
-                        <button class="btn btn-outline-secondary border-0" data-bs-toggle="modal" data-bs-target="#editUser"> Edit </button>&nbsp;
+                        <button class="btn btn-outline-secondary border-0"  onclick="location.href='@Url.Action("EditProduct", "Products", new {pid = @item.ProductId} )'" id="@item.ProductId"> Edit </button>&nbsp;
                         <button class="btn btn-outline-danger border-0">Remove</button>
                     </td>
                 </tr>

@@ -368,7 +368,6 @@ function GetCheckedCountryIds(id) {
         success: function (data) {
             
             data = JSON.parse(data);
-            console.log(data);
             $("#cityListForOrder_" + id).empty();
 
             data.forEach((name) => {
@@ -376,13 +375,13 @@ function GetCheckedCountryIds(id) {
                 document.getElementById("cityListForOrder_" + id).innerHTML += `
                                                  
                                                      <div class=" p-0 mx-2 d-flex">
-                                                       <input type="checkbox" class="form-check-input city_${name.CityId}" name="city"  value="${name.Name}" id="${name.CityId}"/>
+                                                       <input type="checkbox" class="form-check-input city_${name.CityId}" name="city"  value="${name.CountryId}" id="${name.CityId}"/>
                                                        <label class="form-check-label ms-5" for="${name.CityId}">
                                                           ${name.Name}
                                                        </label>
                                                      </div>
                                                   `;
-            })
+            });
 
 
         },
@@ -395,5 +394,34 @@ function GetCheckedCountryIds(id) {
 }
 
 function AddProductByAdmin() {
+    var productName = $('#productName').val().trim();
+    var productShared = $('#productShared').find(":selected").val();
+    var cityMappings = {}; 
 
+    var cityCheckboxes = document.querySelectorAll('input[type="checkbox"][name="city"]:checked');
+
+    cityCheckboxes.forEach(function (checkbox) {
+        var countryId = checkbox.value; 
+        var cityId = checkbox.id;
+
+        if (!cityMappings[countryId]) {
+            cityMappings[countryId] = []; 
+        }
+
+        cityMappings[countryId].push(cityId);
+    });
+
+    $.ajax({
+        url: '/Products/AddProductByAdmin',
+        type: 'POST',
+        datatype: 'json',
+        data: {
+            productName: productName,
+            productShared: productShared,
+            CityMappings: JSON.stringify(cityMappings)
+        },
+        success: function () {
+            location.reload();
+        }
+    });
 }

@@ -39,6 +39,7 @@ public partial class DemoDbContext : DbContext
         modelBuilder.Entity<AvailableProduct>(entity =>
         {
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CityId).HasColumnName("City_id");
             entity.Property(e => e.CountryId).HasColumnName("Country_id");
             entity.Property(e => e.ProductId).HasColumnName("Product_id");
 

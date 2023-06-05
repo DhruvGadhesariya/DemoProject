@@ -11,6 +11,8 @@ public partial class AvailableProduct
 
     public long? CountryId { get; set; }
 
+    public long? CityId { get; set; }
+
     public bool? Available { get; set; }
 
     public virtual Country? Country { get; set; }

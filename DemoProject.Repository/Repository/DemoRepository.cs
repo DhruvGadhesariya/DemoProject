@@ -398,7 +398,7 @@ namespace DemoProject.Repository.Repository
         {
             var checkShared = _dbcontext.Products.FirstOrDefault(a => a.ProductId == order.ProductId).Shared;
             string utcTime = GetCountryCityUtcTimeAsync(order.CountryId, order.CityId);
-            bool isAvailable = _dbcontext.AvailableProducts.Any(a => a.CountryId == order.CountryId && a.ProductId == order.ProductId);
+            bool isAvailable = _dbcontext.AvailableProducts.Any(a => a.CountryId == order.CountryId && a.ProductId == order.ProductId && a.CityId == order.CityId);
 
             TimeZoneInfo cityTimeZone = TimeZoneInfo.FindSystemTimeZoneById(utcTime);
             TimeZoneInfo indiatimezone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");

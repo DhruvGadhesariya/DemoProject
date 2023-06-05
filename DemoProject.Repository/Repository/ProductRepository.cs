@@ -32,5 +32,53 @@ namespace DemoProject.Repository.Repository
 
             return cities;
         }
+
+        public bool AddProductByAdmin(ProductDataModel obj , Dictionary<string, List<string>> CityMappings)
+        {
+            Product product = new Product();
+            product.ProductName = obj.productName;
+            product.Shared = obj.productShared;
+
+            _dbcontext.Products.Add(product);
+            _dbcontext.SaveChanges();
+
+            foreach (var kvp in CityMappings)
+            {
+                string countryId = kvp.Key;
+                long id = long.Parse(countryId);
+
+                foreach (var cityId in kvp.Value)
+                {
+                    long cityid = long.Parse(cityId);
+
+                    AvailableProduct availableProduct = new AvailableProduct();
+                    availableProduct.CountryId = id;
+                    availableProduct.ProductId = product.ProductId;
+                    availableProduct.Available = true;
+                    availableProduct.CityId = cityid;
+
+                    _dbcontext.AvailableProducts.Add(availableProduct);
+                    _dbcontext.SaveChanges();
+                }
+            }
+            return true;
+        }
+
+        public IQueryable GetProductDataForAdmin(long productId)
+        {
+           
+                var query = from u in _dbcontext.Products
+                            join a in _dbcontext.AvailableProducts on u.ProductId equals a.ProductId
+                            where u.ProductId == productId 
+                            select new
+                            {
+                                ProductName = u.ProductName,
+                                Shared = u.Shared,
+                                CountryIds = a.CountryId,
+                                CityIds = a.CityId,
+                            };
+                return query;
+
+        }
     }
 }

@@ -13,6 +13,9 @@ namespace DemoProject.Repository.Interface
     {
         public List<City> GetCityData(long countryId);
 
+        public bool AddProductByAdmin(ProductDataModel obj , Dictionary<string, List<string>> CityMappings);
+
+        public IQueryable GetProductDataForAdmin(long productId);
 
     }
 }
