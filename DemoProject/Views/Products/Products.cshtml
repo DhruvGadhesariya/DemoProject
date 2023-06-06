@@ -39,30 +39,28 @@
             <tr class=" tablehead">
                 <th scope="col">
                     ProductId
-                    <i class="bi bi-arrow-up" onclick="Search(1,'Fname','up')"></i>
-                    <i class="bi bi-arrow-down" onclick="Search(1,'Fname','down')"></i>
+                    <i class="bi bi-arrow-up" onclick="SearchProducts(1,'ProductId','up')"></i>
+                    <i class="bi bi-arrow-down" onclick="SearchProducts(1,'ProductId','down')"></i>
                 </th>
                 <th scope="col">
                     Name
-                    <i class="bi bi-arrow-up" onclick="Search(1,'Lname','up')"></i>
-                    <i class="bi bi-arrow-down" onclick="Search(1,'Lname','down')"></i>
+                    <i class="bi bi-arrow-up" onclick="SearchProducts(1,'Name','up')"></i>
+                    <i class="bi bi-arrow-down" onclick="SearchProducts(1,'Name','down')"></i>
                 </th>
                 <th scope="col">
                     Shared
-                    <i class="bi bi-arrow-up" onclick="Search(1,'Email','up')"></i>
-                    <i class="bi bi-arrow-down" onclick="Search(1,'Email','down')"></i>
+                    <i class="bi bi-arrow-up" onclick="SearchProducts(1,'Shared','up')"></i>
+                    <i class="bi bi-arrow-down" onclick="SearchProducts(1,'Shared','down')"></i>
                 </th>
                 <th scope="col">Action </th>
             </tr>
             <tr class="bg-light tablehead">
                 <th scope="col">
-                    <input class="w-50" type="search" name="SearchFname" placeholder="Search" oninput="Search(1,'Fname')">
                 </th>
                 <th scope="col">
-                    <input class="w-50 " type="search" name="SearchLname" placeholder="Search" oninput="Search(1,'Lname')">
+                    <input class="w-50 " type="search" name="Name" placeholder="Search" oninput="SearchProducts(1,'Name')">
                 </th>
-                <th scope="col">
-                    <input class="w-50 " type="search" name="SearchEmail" placeholder="Search" oninput="Search(1,'Email')">
+                <th scope="col"> 
                 </th>
                 <th scope="col">
                 </th>
@@ -76,9 +74,8 @@
                     <td>@item.ProductName</td>
                     <td>@item.Shared</td>
                     <td>
-
-                        <button class="btn btn-outline-secondary border-0"  onclick="location.href='@Url.Action("EditProduct", "Products", new {pid = @item.ProductId} )'" id="@item.ProductId"> Edit </button>&nbsp;
-                        <button class="btn btn-outline-danger border-0">Remove</button>
+                        <button class="btn btn-outline-secondary border-0"   onclick="location.href='@Url.Action("EditProduct","Products" , new {pid = @item.ProductId})'" id="@item.ProductId"> Edit </button>&nbsp;
+                        <button class="btn btn-outline-danger border-0"  onclick="RemoveProductByAdmin(@item.ProductId);">Remove</button>
                     </td>
                 </tr>
             }
@@ -89,10 +86,9 @@
             <span>
                 show
             </span>
-            <select id="selectentities" onchange="Search();">
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="15">15</option>
+            <select id="selectproducts" onchange="SearchProducts();">
+                <option value="3">3</option>
+                <option value="4">4</option>
                 <option value="100">All</option>
             </select>
             <span>
@@ -100,7 +96,57 @@
             </span>
         </div>
         <div id="userpagination">
+            <nav aria-label="Page navigation example d-flex justify-content-between">
+    
+    <ul class="pagination justify-content-center w-75" onchange="SearchProducts()">
+        @{
+            int prevPage = @ViewBag.currentPage - 1;
+            string finder = @ViewBag.Finder;
+            string sort = @ViewBag.Sort;
+        }
 
+        <li class="page-item">
+            @if (@ViewBag.currentPage > 1)
+            {
+                <button class="page-link" aria-label="Previous" onclick="SearchProducts(@prevPage , '@finder' ,'@sort')">
+                    <span aria-hidden="true">&laquo;</span>
+                </button>
+            }
+
+        </li>
+        @{
+            double totalpages = ViewBag.Totalpages1;
+            int nextPage = @ViewBag.currentPage + 1;
+            
+            for (int i = 1; i <= totalpages; i++)
+            {
+                @if (i == @ViewBag.currentPage)
+                {
+                    <li class="page-item page-active">
+                        <button class="page-link" onclick="SearchProducts(@i , '@finder' ,'@sort' )">@i </button>
+                    </li>
+                }
+                else
+                {
+                    <li class="page-item">
+                        <button class="page-link" onclick="SearchProducts(@i, '@finder' ,'@sort')">@i</button>
+                    </li>
+                }
+
+
+            }
+        }
+        <li class="page-item">
+            @if (@ViewBag.currentPage < @ViewBag.Totalpages1)
+            {
+                <button class="page-link" aria-label="Next" onclick="Search(@nextPage, '@finder' ,'@sort')">
+                    <span aria-hidden="true">&raquo;</span>
+                </button>
+            }
+
+        </li>
+    </ul>
+</nav>
         </div>
     </div>
 

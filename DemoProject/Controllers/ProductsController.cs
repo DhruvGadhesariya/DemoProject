@@ -1,4 +1,5 @@
 ﻿using DemoProject.Entities.Data;
+using DemoProject.Entities.Models;
 using DemoProject.Entities.ViewModel;
 using DemoProject.Repository.Interface;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +22,13 @@ namespace DemoProject.Controllers
         public IActionResult Products()
         {
             var list = _dbcontext.Products.ToList();
+            ViewBag.countries = _dbcontext.Countries.ToList();
+            ViewBag.Totalpages1 = Math.Ceiling(_dbcontext.Products.ToList().Count() / 3.0);
+            ViewBag.currentPage = 1;
+            ViewBag.Finder = "Name";
+            ViewBag.Sort = "up";
+            ViewBag.pagesize = 3;
+            ViewBag.Products = _dbcontext.Products.ToList();
             return View(list);
         }
 
@@ -29,15 +37,12 @@ namespace DemoProject.Controllers
             ViewBag.Countries = _dbcontext.Countries.ToList();
             return View();
         }
-
-        //public IActionResult EditProduct(long pid)
-        //{
-
-        //    var data = System.Text.Json.JsonSerializer.Serialize(_product.GetProductDataForAdmin(userId));
-        //    ViewBag.Countries = _dbcontext.Countries.ToList();
-
-        //    return View(data);
-        //}
+        public IActionResult EditProduct(long pid)
+        {
+            ViewBag.Countries = _dbcontext.Countries.ToList();
+            var viewModel = _product.GetViewModelData(pid);
+            return View(viewModel);
+        }
 
         public JsonResult GetCity(long countryId)
         {
@@ -45,21 +50,82 @@ namespace DemoProject.Controllers
         }
 
         [HttpPost]
-        public void AddProductByAdmin(ProductDataModel obj, string CityMappings)
+        public ActionResult AddProductByAdmin(ProductDataModel obj, string CityMappings)
         {
-
             var cityMappings = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(CityMappings);
+            bool success = _product.AddProductByAdmin(obj, cityMappings);
 
-            bool msg = _product.AddProductByAdmin(obj, cityMappings);
-
-            if (msg)
+            if (success)
             {
-                TempData["success"] = "New Product has been added";
+                return Json(new { success = true, message = "New product has been added." });
             }
             else
             {
-                TempData["error"] = "Oops there is a error while adding the product.";
+                return Json(new { success = false, message = "Oops, there was an error while adding the product." });
             }
+        }
+
+        [HttpPost]
+        public ActionResult EditProductByAdmin(ProductDataModel obj, string CityMappings)
+        {
+            var cityMappings = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(CityMappings);
+            bool success = _product.EditProductByAdmin(obj, cityMappings);
+
+            if (success)
+            {
+                return Json(new { success = true, message = "Product has been updated." });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Oops, there was an error while updating the product." });
+            }
+        }
+
+        [HttpPost]
+        public void RemoveByAdmin(long Id)
+        {
+            _product.RemoveByAdmin(Id);
+            TempData["success"] = "You have Removed successfully!!";
+        }
+
+        [HttpPost]
+        public ActionResult SearchProducts(ProductSearchParams obj)
+        {
+            obj.Name = string.IsNullOrEmpty(obj.Name) ? "" : obj.Name;
+
+            List<Product> usersData = _product.FilterProducts(obj);
+            ViewBag.usersList = usersData;
+
+            var list = _dbcontext.Products.Count();
+            ViewBag.Totalpages1 = (int)Math.Ceiling((double)list / obj.PageSize);
+            ViewBag.currentPage = obj.Pg;
+            ViewBag.Finder = obj.Finder;
+            ViewBag.Sort = obj.Sort;
+            ViewBag.pagesize = obj.PageSize;
+            ViewBag.countries = _dbcontext.Countries.ToList();
+            return View("Products", usersData);
+        }
+
+        [HttpPost]
+        public ActionResult Pagination(ProductSearchParams obj)
+        {
+            obj.Name = string.IsNullOrEmpty(obj.Name) ? "" : obj.Name;
+
+            var usersData = _product.FilterProducts(obj).Count();
+            var list = _dbcontext.Products.Count();
+            if (string.IsNullOrEmpty(obj.Name))
+            {
+                ViewBag.Totalpages1 = (int)Math.Ceiling((double)list / obj.PageSize);
+            }
+            else
+            {
+                ViewBag.Totalpages1 = (int)Math.Ceiling((double)list / obj.PageSize);
+            }
+            ViewBag.currentPage = obj.Pg;
+            ViewBag.Finder = obj.Finder;
+            ViewBag.Sort = obj.Sort;
+            ViewBag.pagesize = obj.PageSize;
+            return View("Products");
         }
     }
 }

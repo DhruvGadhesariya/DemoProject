@@ -302,7 +302,6 @@ namespace DemoProject.Controllers
             TempData["success"] = "You have Removed successfully!!";
         }
 
-
         [HttpPost]
         public ActionResult Search(UserSearchParams obj)
         {

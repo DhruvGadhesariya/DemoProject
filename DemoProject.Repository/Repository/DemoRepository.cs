@@ -460,7 +460,6 @@ namespace DemoProject.Repository.Repository
                 return false;
             }
 
-
             bool hasOverlappingOrders = _dbcontext.Orders.Any(order =>
                 order.ProductId == ProductId &&
                 ((indianFromTime >= order.FromTime && indianFromTime <= order.ToTime) ||

@@ -43,9 +43,10 @@ public partial class DemoDbContext : DbContext
             entity.Property(e => e.CountryId).HasColumnName("Country_id");
             entity.Property(e => e.ProductId).HasColumnName("Product_id");
 
-            entity.HasOne(d => d.Country).WithMany(p => p.AvailableProducts)
-                .HasForeignKey(d => d.CountryId)
-                .HasConstraintName("FK_AvailableProducts_Products");
+            entity.HasOne(d => d.City).WithMany(p => p.AvailableProducts)
+                .HasForeignKey(d => d.CityId)
+                .HasConstraintName("FK_AvailableProducts_city");
+
         });
 
         modelBuilder.Entity<City>(entity =>

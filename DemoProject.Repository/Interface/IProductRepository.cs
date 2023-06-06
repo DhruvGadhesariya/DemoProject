@@ -15,7 +15,22 @@ namespace DemoProject.Repository.Interface
 
         public bool AddProductByAdmin(ProductDataModel obj , Dictionary<string, List<string>> CityMappings);
 
-        public IQueryable GetProductDataForAdmin(long productId);
+        public bool EditProductByAdmin(ProductDataModel obj, Dictionary<string, List<string>> CityMappings);
+
+        public void AddOrUpdateAvailableProducts(long productId, Dictionary<string, List<string>> CityMappings);
+
+        public ProductViewModel GetViewModelData(long pid);
+
+        public void RemoveByAdmin(long Id);
+
+        public List<Product> FilterProducts(ProductSearchParams obj);
+
+        public IQueryable<Product> ApplySearchFilters(IQueryable<Product> query, ProductSearchParams obj);
+
+        public IQueryable<Product> ApplySorting(IQueryable<Product> query, ProductSearchParams obj);
+
+        public IQueryable<Product> ApplyPagination(IQueryable<Product> query, ProductSearchParams obj);
+
 
     }
 }

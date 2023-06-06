@@ -8,6 +8,7 @@ namespace DemoProject.Entities.ViewModel
 {
     public class ProductDataModel
     {
+        public long productId { get; set; }
         public string productName { get; set; }
         public bool productShared { get; set; }
     }

@@ -2,83 +2,185 @@
 using DemoProject.Entities.Models;
 using DemoProject.Entities.ViewModel;
 using DemoProject.Repository.Interface;
-using System.Data;
-using iTextSharp.text;
-using iTextSharp.text.pdf;
-using OfficeOpenXml;
-using System.Drawing;
-using TimeZoneNames;
-using NodaTime;
-using NodaTime.TimeZones;
-using System.Globalization;
-using System.Net;
-using Newtonsoft.Json.Linq;
-
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DemoProject.Repository.Repository
 {
     public class ProductRepository : IProductRepository
     {
-        public readonly DemoDbContext _dbcontext;
+        private readonly DemoDbContext _dbContext;
 
-        public ProductRepository(DemoDbContext dbcontext)
+        public ProductRepository(DemoDbContext dbContext)
         {
-            _dbcontext = dbcontext;
+            _dbContext = dbContext;
         }
+
         public List<City> GetCityData(long countryId)
         {
-            List<City> cities = _dbcontext.Cities.ToList();
-            cities = cities.Where(a => a.CountryId == countryId).ToList();
-
-            return cities;
+            return _dbContext.Cities
+                .Where(city => city.CountryId == countryId)
+                .ToList();
         }
 
-        public bool AddProductByAdmin(ProductDataModel obj , Dictionary<string, List<string>> CityMappings)
+        public bool AddProductByAdmin(ProductDataModel obj, Dictionary<string, List<string>> CityMappings)
         {
-            Product product = new Product();
-            product.ProductName = obj.productName;
-            product.Shared = obj.productShared;
-
-            _dbcontext.Products.Add(product);
-            _dbcontext.SaveChanges();
-
-            foreach (var kvp in CityMappings)
+            var product = new Product
             {
-                string countryId = kvp.Key;
-                long id = long.Parse(countryId);
+                ProductName = obj.productName,
+                Shared = obj.productShared
+            };
 
-                foreach (var cityId in kvp.Value)
-                {
-                    long cityid = long.Parse(cityId);
+            _dbContext.Products.Add(product);
+            _dbContext.SaveChanges();
 
-                    AvailableProduct availableProduct = new AvailableProduct();
-                    availableProduct.CountryId = id;
-                    availableProduct.ProductId = product.ProductId;
-                    availableProduct.Available = true;
-                    availableProduct.CityId = cityid;
+            AddOrUpdateAvailableProducts(product.ProductId, CityMappings);
 
-                    _dbcontext.AvailableProducts.Add(availableProduct);
-                    _dbcontext.SaveChanges();
-                }
-            }
             return true;
         }
 
-        public IQueryable GetProductDataForAdmin(long productId)
+        public bool EditProductByAdmin(ProductDataModel obj, Dictionary<string, List<string>> CityMappings)
         {
-           
-                var query = from u in _dbcontext.Products
-                            join a in _dbcontext.AvailableProducts on u.ProductId equals a.ProductId
-                            where u.ProductId == productId 
-                            select new
-                            {
-                                ProductName = u.ProductName,
-                                Shared = u.Shared,
-                                CountryIds = a.CountryId,
-                                CityIds = a.CityId,
-                            };
-                return query;
+            var product = _dbContext.Products.FirstOrDefault(p => p.ProductId == obj.productId);
+            if (product == null)
+                return false;
 
+            product.ProductName = obj.productName;
+            product.Shared = obj.productShared;
+
+            _dbContext.SaveChanges();
+
+            AddOrUpdateAvailableProducts(product.ProductId, CityMappings);
+
+            return true;
+        }
+
+        public void AddOrUpdateAvailableProducts(long productId, Dictionary<string, List<string>> CityMappings)
+        {
+            var existingMappings = _dbContext.AvailableProducts
+                .Where(ap => ap.ProductId == productId)
+                .ToList();
+
+            foreach (var kvp in CityMappings)
+            {
+                if (!long.TryParse(kvp.Key, out long countryId))
+                    continue;
+
+                foreach (var cityId in kvp.Value)
+                {
+                    if (!long.TryParse(cityId, out long parsedCityId))
+                        continue;
+
+                    bool existingMapping = existingMappings
+                        .Any(ap => ap.CountryId == countryId && ap.CityId == parsedCityId && ap.ProductId == productId);
+
+                    if (!existingMapping)
+                    {
+                        var availableProduct = new AvailableProduct
+                        {
+                            CountryId = countryId,
+                            ProductId = productId,
+                            Available = true,
+                            CityId = parsedCityId
+                        };
+
+                        _dbContext.AvailableProducts.Add(availableProduct);
+                    }
+                }
+            }
+
+            var uncheckedMappings = existingMappings
+                .Where(ap => !CityMappings.ContainsKey(ap.CountryId.ToString()) || !CityMappings[ap.CountryId.ToString()].Contains(ap.CityId.ToString()))
+                .ToList();
+
+            _dbContext.AvailableProducts.RemoveRange(uncheckedMappings);
+
+            _dbContext.SaveChanges();
+        }
+
+        public ProductViewModel GetViewModelData(long productId)
+        {
+            var availableProducts = _dbContext.AvailableProducts
+                .Where(ap => ap.ProductId == productId)
+                .GroupBy(ap => ap.CountryId)
+                .ToDictionary(g => g.Key, g => g.Select(ap => ap.CityId).ToList());
+
+            var model = new ProductViewModel
+            {
+                ProductId = productId,
+                ProductName = _dbContext.Products.Find(productId)?.ProductName,
+                Shared = _dbContext.Products.Find(productId)?.Shared,
+                CountryCityMap = new Dictionary<Country, List<City>>()
+            };
+
+            var allCountries = _dbContext.Countries.ToList();
+            var allCities = _dbContext.Cities.ToList();
+
+            foreach (var country in allCountries)
+            {
+                var cities = allCities
+                    .Where(city => availableProducts.ContainsKey(country.CountryId) && availableProducts[country.CountryId].Contains(city.CityId))
+                    .ToList();
+
+                model.CountryCityMap.Add(country, cities);
+            }
+
+            return model;
+        }
+
+        public void RemoveByAdmin(long productId)
+        {
+            var product = _dbContext.Products.FirstOrDefault(p => p.ProductId == productId);
+            if (product == null)
+                return;
+
+            _dbContext.Products.Remove(product);
+
+            var availableProducts = _dbContext.AvailableProducts.Where(ap => ap.ProductId == productId).ToList();
+
+            _dbContext.AvailableProducts.RemoveRange(availableProducts);
+            _dbContext.SaveChanges();
+        }
+
+        public List<Product> FilterProducts(ProductSearchParams obj)
+        {
+            var query = _dbContext.Products.AsQueryable();
+
+            query = ApplySearchFilters(query, obj);
+            query = ApplySorting(query, obj);
+            query = ApplyPagination(query, obj);
+
+            return query.ToList();
+        }
+
+        public IQueryable<Product> ApplySearchFilters(IQueryable<Product> query, ProductSearchParams obj)
+        {
+            if (!string.IsNullOrWhiteSpace(obj.Name))
+                query = query.Where(product => product.ProductName.ToLower().Contains(obj.Name.ToLower()));
+
+            return query;
+        }
+
+        public IQueryable<Product> ApplySorting(IQueryable<Product> query, ProductSearchParams obj)
+        {
+            if (obj.Finder == "Name")
+            {
+                query = (obj.Sort == "up")
+                    ? query.OrderBy(product => product.ProductName)
+                    : query.OrderByDescending(product => product.ProductName);
+            }
+            return query;
+        }
+
+        public IQueryable<Product> ApplyPagination(IQueryable<Product> query, ProductSearchParams obj)
+        {
+            var pageSize = obj.PageSize;
+            if (obj.Pg != 0)
+            {
+                query = query.Skip((obj.Pg - 1) * (int)pageSize).Take((int)pageSize);
+            }
+
+            return query;
         }
     }
 }

@@ -19,6 +19,8 @@ public partial class City
 
     public string? StandardTime { get; set; }
 
+    public virtual ICollection<AvailableProduct> AvailableProducts { get; set; } = new List<AvailableProduct>();
+
     public virtual Country Country { get; set; } = null!;
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

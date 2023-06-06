@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DemoProject.Entities.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace DemoProject.Entities.ViewModel
 {
     public class ProductViewModel
     {
-        public long ProductId { get; set; }
+        public long? ProductId { get; set; }
 
         public string? ProductName { get; set; }
 
@@ -23,5 +24,7 @@ namespace DemoProject.Entities.ViewModel
         public string CityName { get; set; } = null!;
 
         public bool? Available { get; set; }
+
+        public Dictionary<Country, List<City>> CountryCityMap { get; set; }
     }
 }

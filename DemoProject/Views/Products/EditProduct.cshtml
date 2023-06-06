@@ -1,9 +1,10 @@
-﻿
+﻿@using DemoProject.Entities.ViewModel
+
 @{
     Layout = null;
 }
 
-
+@model ProductViewModel
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
@@ -13,7 +14,7 @@
 
 
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-dark ps-5">
+<nav class="navbar navbar-expand-lg navbar-light bg-dark ps-5">
     <a class="navbar-brand fs-3 fw-bold text-white" href="#">MFA</a><i class="bi bi-key-fill text-white"></i><i class="bi bi-lock-fill text-white"></i>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -44,51 +45,94 @@
                 <input type="text"
                        class="form-control text my-2 hiding "
                        id="productName"
+                       value="@Model.ProductName"
                        placeholder="Enter Product Name" />
             </div>
             <div class="col-4">
                 <span class="fs-4">Shared<span class="text-danger">*</span></span>
-               <select class="form-control my-2 " aria-label="Default select example" id="productShared">
-                                                <option value="true">Yes</option>
-                                                <option value="false">No</option>
-               </select>
+                <select class="form-control my-2 " aria-label="Default select example" id="productShared">
+                    @if (@Model.Shared == true)
+                    {
+                        <option value="@Model.Shared">Yes</option>
+                        <option value="false">No</option>
+
+                    }
+                    else
+                    {
+                        <option value="@Model.Shared">@Model.Shared</option>
+                        <option value="true">Yes</option>
+                    }
+                </select>
             </div>
         </div>
 
         <div class="row form-group">
             <div class="">
                 <span class="fs-4">Available For :<span class="text-danger">*</span></span>
-    
+
             </div>
             <div class="dropdown d-flex w-100" style="height:300px;">
-                @foreach (var item in @ViewBag.Countries)
+                @foreach (var entry in Model.CountryCityMap)
                 {
                     <div class="my-5 col">
+                       
+                        <label for="@entry.Key.CountryId">@entry.Key.Name</label>
 
-                     <input type="checkbox" id="@item.CountryId" name="country" onchange="GetCheckedCountryIds(@item.CountryId)"> 
-                     <label for="@item.CountryId">@item.Name</label>
-                          <div class="dropdown-content" id="cityListForOrder_@item.CountryId">
-                     
-                          </div>
-                     </div>
+                        @if (Model.CountryCityMap.ContainsKey(entry.Key) && entry.Value.Count() > 0)
+                        {
+                            <input type="checkbox" id="@entry.Key.CountryId" name="editcountry" class="country-checkbox-checked" checked>
+                        }
+                        else
+                        {
+                            <input type="checkbox" id="@entry.Key.CountryId" name="editcountry" class="country-checkbox">
+                        }
+
+                        <div class="dropdown-content city-dropdown" id="cityListForOrder_@entry.Key.CountryId">
+                            @foreach (var city in entry.Value)
+                            {
+                                <div class="p-0 mx-2 d-flex">
+                                    <input type="checkbox" class="form-check-input city-checkbox" name="editcity" value="@city.CountryId" id="@city.CityId" checked />
+                                    <label class="form-check-label ms-5" for="@city.CityId">
+                                        @city.Name
+                                    </label>
+                                </div>
+                            }
+
+                            @foreach (var city in entry.Key.Cities)
+                            {
+                                if (!entry.Value.Contains(city))
+                                {
+                                    <div class="p-0 mx-2 d-flex">
+                                        <input type="checkbox" class="form-check-input city-checkbox" name="editcity" value="@city.CountryId" id="@city.CityId" />
+                                        <label class="form-check-label ms-5" for="@city.CityId">
+                                            @city.Name
+                                        </label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
                 }
+
+
+
             </div>
         </div>
     </form>
     <div class="mt-3 d-flex justify-content-between">
-                                    <button class="btn skill"
-                                            type="button"
-                                            onclick="location.href='@Url.Action("Products","Products")'">
-                                        Cancle
-                                    </button>
+        <button class="btn skill"
+                type="button"
+                onclick="location.href='@Url.Action("Products","Products")'">
+            Cancel
+        </button>
 
-                                    <button class="btn savePassword ms-2 "
-                                            type="button"
-                                            id="submit"
-                                            onclick="AddProductByAdmin();">
-                                        Submit
-                                    </button>
-                                </div>
+        <button class="btn savePassword ms-2 "
+                type="button"
+                id="submit"
+                onclick="EditProductByAdmin(@Model.ProductId);">
+            Submit
+        </button>
+    </div>
 </div>
 
 
@@ -108,27 +152,56 @@
         color: #757575;
         padding: 8px 37px 8px 37px;
     }
+
     .dropdown-content {
-      display: none;
-      position: absolute;
-      background-color: #f9f9f9;
-      min-width: 160px;
-      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-      padding: 12px 16px;
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        padding: 12px 16px;
     }
-    
-    .dropdown-content label {
-      display: block;
-      margin-bottom: 8px;
+
+        .dropdown-content label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+    .city-dropdown {
+        display: block;
     }
+
 </style>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/js/Home.js"></script>
 <script>
-    $(document).ready(function() {
-      $('input[name="country"]').on('click', function() {
-        var dropdownContent = $(this).siblings('.dropdown-content');
-        dropdownContent.toggle();
-      });
+         $(document).ready(function() {
+
+             $('.country-checkbox').each(function() {
+                var dropdown = $(this).siblings('.city-dropdown');
+                if ($(this).is(':checked')) {
+                    dropdown.show();
+                } else {
+                    dropdown.hide();
+                }
+            });
+
+             $('input[type="checkbox"][name="editcountry"]').on('change', function () {
+
+                var countryId = $(this).attr('id');
+                if ($(this).is(':checked')) {
+
+                } else {
+                    $('#cityListForOrder_' + countryId).find('input[type="checkbox"][name="editcity"]:checked').prop('checked', false);
+                }
+            });
+
+            $('.country-checkbox-checked').on('change', function() {
+                var dropdown = $(this).siblings('.city-dropdown');
+                dropdown.toggle();
+            });
     });
-  </script>
+
+
+
+</script>

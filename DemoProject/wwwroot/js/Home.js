@@ -159,7 +159,7 @@ function addUser() {
 }
 
 function clearModal() {
-    
+
     $("#userAdd").trigger("reset");
     $("#selectCityList").empty();
     $("#addOrder").trigger("reset");
@@ -247,7 +247,7 @@ function AfterEditAddUser() {
 function removeByAdmin(Id) {
 
 
-    if (confirm("Do you want to remove This User ?")) {
+    if (confirm("Do you want to remove This ?")) {
         console.log(Id);
 
         $.ajax({
@@ -308,7 +308,7 @@ function GetCityForUser() {
 }
 
 function AddProducts() {
-    debugger
+
     var ProductId = $('#products').find(":selected").val();
     var country = $('#ocountries').find(":selected").val();
     var city = $('#CityForOrder').find(":selected").val();
@@ -316,45 +316,37 @@ function AddProducts() {
     var to = $('#to').val();
 
 
-        $.ajax({
-            url: '/Home/OrderProduct',
-            type: 'GET',
-            datatype: 'html',
-            data: {
-                ProductId: ProductId,
-                CountryId: country,
-                CityId: city,
-                From: from,
-                To: to
-            },
-            success: function (response) {
-                if (response == "falseTime") {
-                    $('#timestatus').html("Order for this time is already placed!!");
-                    $('#timestatus').css('color', 'red');
-                }
-                else if (response == "notAvailable")
-                {
-                    $('#timestatus').html("Product is not Available for your Country!!");
-                    $('#timestatus').css('color', 'red');
-                }
-                else
-                {
-                    location.reload();
-                    $('#addProducts').modal('hide');
-                    clearModal();
-                }
+    $.ajax({
+        url: '/Home/OrderProduct',
+        type: 'GET',
+        datatype: 'html',
+        data: {
+            ProductId: ProductId,
+            CountryId: country,
+            CityId: city,
+            From: from,
+            To: to
+        },
+        success: function (response) {
+            if (response == "falseTime") {
+                $('#timestatus').html("Order for this time is already placed!!");
+                $('#timestatus').css('color', 'red');
             }
-        });
-    
+            else if (response == "notAvailable") {
+                $('#timestatus').html("Product is not Available for your Country!!");
+                $('#timestatus').css('color', 'red');
+            }
+            else {
+                location.reload();
+                $('#addProducts').modal('hide');
+                clearModal();
+            }
+        }
+    });
+
 }
 
 function GetCheckedCountryIds(id) {
-
-    //var countryId = [];
-
-    //$('input[name="country"]:checked').each(function () {
-    //    countryId.push(this.id);
-    //});
 
     $.ajax({
 
@@ -366,14 +358,13 @@ function GetCheckedCountryIds(id) {
         },
 
         success: function (data) {
-            
+
             data = JSON.parse(data);
             $("#cityListForOrder_" + id).empty();
 
             data.forEach((name) => {
 
                 document.getElementById("cityListForOrder_" + id).innerHTML += `
-                                                 
                                                      <div class=" p-0 mx-2 d-flex">
                                                        <input type="checkbox" class="form-check-input city_${name.CityId}" name="city"  value="${name.CountryId}" id="${name.CityId}"/>
                                                        <label class="form-check-label ms-5" for="${name.CityId}">
@@ -382,8 +373,6 @@ function GetCheckedCountryIds(id) {
                                                      </div>
                                                   `;
             });
-
-
         },
         error: function (request, error) {
             console.log(error);
@@ -396,18 +385,17 @@ function GetCheckedCountryIds(id) {
 function AddProductByAdmin() {
     var productName = $('#productName').val().trim();
     var productShared = $('#productShared').find(":selected").val();
-    var cityMappings = {}; 
+    var cityMappings = {};
 
     var cityCheckboxes = document.querySelectorAll('input[type="checkbox"][name="city"]:checked');
 
     cityCheckboxes.forEach(function (checkbox) {
-        var countryId = checkbox.value; 
+        var countryId = checkbox.value;
         var cityId = checkbox.id;
 
         if (!cityMappings[countryId]) {
-            cityMappings[countryId] = []; 
+            cityMappings[countryId] = [];
         }
-
         cityMappings[countryId].push(cityId);
     });
 
@@ -420,8 +408,118 @@ function AddProductByAdmin() {
             productShared: productShared,
             CityMappings: JSON.stringify(cityMappings)
         },
-        success: function () {
-            location.reload();
+        success: function (response) {
+            if (response.success) {
+                alert(response.message);
+                location.reload();
+            } else {
+                alert(response.message);
+            }
         }
     });
+}
+
+function EditProductByAdmin(productId) {
+    var productName = $('#productName').val().trim();
+    var productShared = $('#productShared').find(":selected").val();
+    var cityMappings = {};
+
+    var cityCheckboxes = document.querySelectorAll('input[type="checkbox"][name="editcity"]:checked');
+
+    cityCheckboxes.forEach(function (checkbox) {
+        var countryId = checkbox.value;
+        var cityId = checkbox.id;
+
+        if (!cityMappings[countryId]) {
+            cityMappings[countryId] = [];
+        }
+        cityMappings[countryId].push(cityId);
+    });
+
+    console.log(cityMappings);
+
+    $.ajax({
+        url: '/Products/EditProductByAdmin',
+        type: 'POST',
+        datatype: 'json',
+        data: {
+            productId: productId,
+            productName: productName,
+            productShared: productShared,
+            CityMappings: JSON.stringify(cityMappings)
+        },
+        success: function (response) {
+            if (response.success) {
+                alert(response.message);
+                window.location.href = '/Products/Products';
+            } else {
+                alert(response.message);
+            }
+        }
+    });
+}
+
+function RemoveProductByAdmin(Id) {
+
+
+    if (confirm("Do you want to remove This ?")) {
+        console.log(Id);
+
+        $.ajax({
+
+            url: '/Products/RemoveByAdmin',
+            type: 'POST',
+            datatype: 'html',
+            data: {
+                Id: Id,
+            },
+            success: function () {
+                location.reload();
+            }
+        });
+    }
+    else {
+        toastr.error("You have clicked on cancel!!");
+    }
+}
+
+function SearchProducts(pg, finder, sort) {
+
+    var pagesize = $('#selectproducts').find(":selected").val();
+    var Name = $("input[name='Name']").val();
+
+    if (pg == undefined) {
+        pg = 1;
+    }
+
+    $.ajax({
+        url: "/Products/SearchProducts",
+        type: "post",
+        data: {
+            Name: Name,
+            Pg: pg,
+            Finder: finder,
+            Sort: sort,
+            PageSize: pagesize
+        },
+        success: function () {
+
+        }
+    })
+    $.ajax({
+        url: "/Home/Pagination",
+        type: "post",
+        data: {
+            SearchFname: obj.SearchFname,
+            SearchLname: obj.SearchLname,
+            SearchEmail: obj.SearchEmail,
+            Pg: pg,
+            Finder: finder,
+            Sort: sort,
+            PageSize: pagesize
+        },
+        success: function () {
+
+        }
+    })
 }

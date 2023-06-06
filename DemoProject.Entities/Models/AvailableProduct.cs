@@ -15,5 +15,7 @@ public partial class AvailableProduct
 
     public bool? Available { get; set; }
 
+    public virtual City? City { get; set; }
+
     public virtual Country? Country { get; set; }
 }
