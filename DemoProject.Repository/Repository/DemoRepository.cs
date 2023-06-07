@@ -13,7 +13,7 @@ using NodaTime.TimeZones;
 using System.Globalization;
 using System.Net;
 using Newtonsoft.Json.Linq;
-
+using Grpc.Core;
 
 namespace DemoProject.Repository.Repository
 {
@@ -79,12 +79,18 @@ namespace DemoProject.Repository.Repository
             }
         }
 
-        public List<City> GetCityData(long countryId)
+        public List<City> GetCityData(long countryId, long ProductId)
         {
-            List<City> cities = _dbcontext.Cities.Where(a => a.DeletedAt == null).ToList();
-            cities = cities.Where(a => a.CountryId == countryId && a.DeletedAt == null).ToList();
+            var availableCityIds = _dbcontext.AvailableProducts
+               .Where(a => a.ProductId == ProductId && a.CountryId== countryId)
+               .Select(a => a.CityId)
+               .ToList();
 
-            return cities;
+            var availableCities = _dbcontext.Cities
+                .Where(c => availableCityIds.Contains(c.CityId))
+                .ToList();
+
+            return availableCities;
         }
 
         public void addUserByMe(User user)
@@ -407,7 +413,7 @@ namespace DemoProject.Repository.Repository
             DateTime indianFromTime = GetIndianLocalTime(order.From, timeDifference);
             DateTime indianToTime = GetIndianLocalTime(order.To, timeDifference);
 
-            if (isAvailable)    
+            if (isAvailable)
             {
                 var product = _dbcontext.Products.FirstOrDefault(a => a.ProductId == order.ProductId);
 
@@ -418,7 +424,7 @@ namespace DemoProject.Repository.Repository
                 }
                 else
                 {
-                    bool hasOverlappingOrders = CheckForOverlappingOrders(order.ProductId,indianFromTime, indianToTime);
+                    bool hasOverlappingOrders = CheckForOverlappingOrders(order.ProductId, indianFromTime, indianToTime);
 
                     if (!hasOverlappingOrders)
                     {
@@ -434,7 +440,7 @@ namespace DemoProject.Repository.Repository
             else
             {
                 return "notAvailable";
-            } 
+            }
         }
 
         public void AddNewOrder(OrderParams order, int? userId, DateTime indianFromTime, DateTime indianToTime)
@@ -506,6 +512,47 @@ namespace DemoProject.Repository.Repository
 
             return timeZoneId;
         }
+
+        public List<Country> GetAvailableCountry(long ProductId)
+        {
+
+            var availableCountryIds = _dbcontext.AvailableProducts
+                .Where(a => a.ProductId == ProductId)
+                .Select(a => a.CountryId)
+                .ToList();
+
+            var availableCountries = _dbcontext.Countries
+                .Where(c => availableCountryIds.Contains(c.CountryId))
+                .ToList();
+
+            return availableCountries;
+
+        }
+
+        public OrderDetailsForMail GetOrderDetail(OrderParams order, long userId)
+        {
+            var user = _dbcontext.Users.Find(userId);
+            var countryName = _dbcontext.Countries.Find(order.CountryId).Name;
+            var cityName = _dbcontext.Cities.Find(order.CityId).Name;
+            var productName = _dbcontext.Products.Find(order.ProductId).ProductName;
+          
+            var model = new OrderDetailsForMail
+            {
+                UserId = userId,
+                ProductId = order.ProductId,
+                CountryId = order.CountryId,
+                CityId = order.CityId,
+                CountryName = countryName,
+                CityName = cityName,
+                FirstName = user.Fname,
+                LastName = user.Lname,
+                Date = order.From,
+                ProductName = productName,
+            };
+
+            return model;
+        }
+
         #endregion
     }
 }

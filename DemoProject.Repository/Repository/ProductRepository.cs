@@ -153,6 +153,15 @@ namespace DemoProject.Repository.Repository
             return query.ToList();
         }
 
+        public List<Product> FilterProductsWithOutPagination(ProductSearchParams obj)
+        {
+            var query = _dbContext.Products.AsQueryable();
+
+            query = ApplySearchFilters(query, obj);
+            query = ApplySorting(query, obj);
+
+            return query.ToList();
+        }
         public IQueryable<Product> ApplySearchFilters(IQueryable<Product> query, ProductSearchParams obj)
         {
             if (!string.IsNullOrWhiteSpace(obj.Name))
@@ -182,5 +191,10 @@ namespace DemoProject.Repository.Repository
 
             return query;
         }
+
+        //public List<Country> GetAvailableCountries()
+        //{
+
+        //}
     }
 }

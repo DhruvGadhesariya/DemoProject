@@ -93,13 +93,15 @@ function GetFilter() {
 function GetCity() {
 
     var countryId = $('#ocountries').find(":selected").val();
+    var ProductId = $('#products').find(":selected").val();
     $.ajax({
 
         url: "/Home/GetCity",
         method: "POST",
 
         data: {
-            "countryId": countryId
+            "countryId": countryId,
+            "ProductId": ProductId
         },
 
         success: function (data) {
@@ -315,7 +317,6 @@ function AddProducts() {
     var from = $('#from').val();
     var to = $('#to').val();
 
-
     $.ajax({
         url: '/Home/OrderProduct',
         type: 'GET',
@@ -507,12 +508,10 @@ function SearchProducts(pg, finder, sort) {
         }
     })
     $.ajax({
-        url: "/Home/Pagination",
+        url: "/Products/Pagination",
         type: "post",
         data: {
-            SearchFname: obj.SearchFname,
-            SearchLname: obj.SearchLname,
-            SearchEmail: obj.SearchEmail,
+            Name: Name,
             Pg: pg,
             Finder: finder,
             Sort: sort,
@@ -523,3 +522,17 @@ function SearchProducts(pg, finder, sort) {
         }
     })
 }
+
+function SendMail() {
+    $.ajax({
+        url: "/Home/SendEmailForOrderAsync",
+        type: "post",
+        success: function () {
+
+        }
+    })
+}
+
+
+
+

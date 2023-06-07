@@ -1,38 +1,40 @@
-﻿
+﻿@using DemoProject.Entities.ViewModel
+@model ProductSearchParams
+
+
 <nav aria-label="Page navigation example d-flex justify-content-between">
     
-    <ul class="pagination justify-content-center w-75" onchange="Search()">
+    <ul class="pagination justify-content-center w-75" onchange="SearchProducts()">
         @{
-            int prevPage = @ViewBag.currentPage - 1;
-            string finder = @ViewBag.Finder;
-            string sort = @ViewBag.Sort;
+            int prevPage = @Model.Pg - 1;
+            string finder = @Model.Finder;
+            string sort = @Model.Sort;
         }
 
         <li class="page-item">
-            @if (@ViewBag.currentPage > 1)
+            @if (@Model.Pg > 1)
             {
-                <button class="page-link" aria-label="Previous" onclick="Search(@prevPage , '@finder' ,'@sort')">
+                <button class="page-link" aria-label="Previous" onclick="SearchProducts(@prevPage , '@finder' ,'@sort')">
                     <span aria-hidden="true">&laquo;</span>
                 </button>
             }
-
         </li>
         @{
             double totalpages = ViewBag.Totalpages1;
-            int nextPage = @ViewBag.currentPage + 1;
+            int nextPage = @Model.Pg + 1;
             
             for (int i = 1; i <= totalpages; i++)
             {
                 @if (i == @ViewBag.currentPage)
                 {
                     <li class="page-item page-active">
-                        <button class="page-link" onclick="Search(@i , '@finder' ,'@sort' )">@i </button>
+                        <button class="page-link" onclick="SearchProducts(@i , '@finder' ,'@sort' )">@i </button>
                     </li>
                 }
                 else
                 {
                     <li class="page-item">
-                        <button class="page-link" onclick="Search(@i, '@finder' ,'@sort')">@i</button>
+                        <button class="page-link" onclick="SearchProducts(@i, '@finder' ,'@sort')">@i</button>
                     </li>
                 }
 
@@ -40,9 +42,9 @@
             }
         }
         <li class="page-item">
-            @if (@ViewBag.currentPage < @ViewBag.Totalpages1)
+            @if (@Model.Pg < @ViewBag.Totalpages1)
             {
-                <button class="page-link" aria-label="Next" onclick="Search(@nextPage, '@finder' ,'@sort')">
+                <button class="page-link" aria-label="Next" onclick="SearchProducts(@nextPage, '@finder' ,'@sort')">
                     <span aria-hidden="true">&raquo;</span>
                 </button>
             }

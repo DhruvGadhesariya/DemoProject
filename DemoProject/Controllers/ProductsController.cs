@@ -111,7 +111,7 @@ namespace DemoProject.Controllers
         {
             obj.Name = string.IsNullOrEmpty(obj.Name) ? "" : obj.Name;
 
-            var usersData = _product.FilterProducts(obj).Count();
+            var usersData = _product.FilterProductsWithOutPagination(obj).Count();
             var list = _dbcontext.Products.Count();
             if (string.IsNullOrEmpty(obj.Name))
             {
@@ -119,13 +119,9 @@ namespace DemoProject.Controllers
             }
             else
             {
-                ViewBag.Totalpages1 = (int)Math.Ceiling((double)list / obj.PageSize);
+                ViewBag.Totalpages1 = (int)Math.Ceiling((double)usersData / obj.PageSize);
             }
-            ViewBag.currentPage = obj.Pg;
-            ViewBag.Finder = obj.Finder;
-            ViewBag.Sort = obj.Sort;
-            ViewBag.pagesize = obj.PageSize;
-            return View("Products");
+            return PartialView("_PaginationProduct" , obj);
         }
     }
 }

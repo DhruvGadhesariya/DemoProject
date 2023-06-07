@@ -75,12 +75,12 @@
                 @foreach (var entry in Model.CountryCityMap)
                 {
                     <div class="my-5 col">
-                       
+
                         <label for="@entry.Key.CountryId">@entry.Key.Name</label>
 
                         @if (Model.CountryCityMap.ContainsKey(entry.Key) && entry.Value.Count() > 0)
                         {
-                            <input type="checkbox" id="@entry.Key.CountryId" name="editcountry" class="country-checkbox-checked" checked>
+                            <input type="checkbox" id="@entry.Key.CountryId" name="editcountry" class="country-checkbox" checked>
                         }
                         else
                         {
@@ -178,6 +178,7 @@
          $(document).ready(function() {
 
              $('.country-checkbox').each(function() {
+                 debugger
                 var dropdown = $(this).siblings('.city-dropdown');
                 if ($(this).is(':checked')) {
                     dropdown.show();
@@ -196,7 +197,7 @@
                 }
             });
 
-            $('.country-checkbox-checked').on('change', function() {
+            $('.country-checkbox').on('change', function() {
                 var dropdown = $(this).siblings('.city-dropdown');
                 dropdown.toggle();
             });

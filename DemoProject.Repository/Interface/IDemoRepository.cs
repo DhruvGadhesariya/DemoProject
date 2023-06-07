@@ -17,7 +17,7 @@ namespace DemoProject.Repository.Interface
 
         public bool AddUser(UserVerifyViewmodel model);
 
-        public List<City> GetCityData(long countryId);
+        public List<City> GetCityData(long countryId, long ProductId);
 
         public void addUserByMe(User user);
 
@@ -60,5 +60,9 @@ namespace DemoProject.Repository.Interface
         public void UpdateUserOtp(UserOtp userOtp, long otp, DateTime createdAt, DateTime expiredAt);
 
         public void AddNewOrder(OrderParams order, int? userId, DateTime indianFromTime, DateTime indianToTime);
+
+        public List<Country> GetAvailableCountry(long ProductId);
+
+        public OrderDetailsForMail GetOrderDetail(OrderParams order, long userId);
     }
 }

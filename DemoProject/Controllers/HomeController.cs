@@ -17,6 +17,12 @@ using iTextSharp.text.pdf;
 using OfficeOpenXml;
 using System.Data;
 using Azure;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using System;
+using System.IO;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace DemoProject.Controllers
 {
@@ -168,6 +174,8 @@ namespace DemoProject.Controllers
                                                         "Your Otp is : " + otp));
         }
 
+
+        
         #endregion
 
         #region Login
@@ -248,9 +256,9 @@ namespace DemoProject.Controllers
             return View();
         }
 
-        public JsonResult GetCity(long countryId)
+        public JsonResult GetCity(long countryId , long ProductId)
         {
-            return Json(JsonSerializer.Serialize(_demoreppo.GetCityData(countryId)));
+            return Json(JsonSerializer.Serialize(_demoreppo.GetCityData(countryId , ProductId)));
         }
 
         [HttpPost]
@@ -352,8 +360,6 @@ namespace DemoProject.Controllers
         [HttpPost]
         public void DownloadData(string format, UserSearchParams obj)
         {
-            //List<User> usersData = JsonSerializer.Deserialize<List<User>>(tableData);
-
             var userId = HttpContext.Session.GetInt32("userid");
             if (format == "pdf")
             {
@@ -367,6 +373,96 @@ namespace DemoProject.Controllers
         #endregion
 
         #region Orders
+        public IActionResult MailBody()
+        {
+            return View();
+        }
+        public void SendEmailForOrder(OrderParams order, string email)
+        {
+            var userId = HttpContext.Session.GetInt32("userid");
+            var subject = "Order Placed..";
+            var model = _demoreppo.GetOrderDetail(order, (long)userId);
+            var body = RenderViewToString(ControllerContext, "MailBody", model);
+
+            var message = new MailMessage
+            {
+                From = new MailAddress("dhruv.gadhesariya@internal.mail"),
+                To = { new MailAddress(email) },
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = true
+            };
+
+            string attachmentFilePath1 = "C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Downloads\\filtered_19-.pdf";
+            Attachment attachment1 = new Attachment(attachmentFilePath1);
+            message.Attachments.Add(attachment1);
+
+            DateTime orderDate = DateTime.Now;
+            message.Headers.Add("Order-Date", orderDate.ToString("yyyy-MM-dd"));
+
+
+            AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, "text/html");
+
+            LinkedResource imageResource = new LinkedResource("C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Assets\\multifactor-authentificaton.png", "image/png");
+            imageResource.ContentId = "myImage";
+            htmlView.LinkedResources.Add(imageResource);
+
+            LinkedResource imageResource2 = new LinkedResource("C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Assets\\download.jpg", "image/jpg");
+            imageResource2.ContentId = "myImage1";
+            htmlView.LinkedResources.Add(imageResource2);
+
+            message.AlternateViews.Add(htmlView);
+            try
+            {
+                using (var client = new SmtpClient("172.16.10.7", 25))
+                {
+                    client.EnableSsl = false;
+                    client.UseDefaultCredentials = false;
+                    client.Credentials = new NetworkCredential("dhruv.gadhesariya@internal.mail", "tatva123");
+
+                    client.Send(message);
+                }
+            }
+            catch (SmtpException ex)
+            {
+                TempData["error"] = "error in sending the emails" + ex.Message;
+            }
+            
+        }
+
+
+
+        public string RenderViewToString(ControllerContext context, string viewName, object model)
+        {
+            var viewEngine = context.HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as ICompositeViewEngine;
+            var viewResult = viewEngine.FindView(context, viewName, false);
+
+            if (viewResult.View == null)
+            {
+                throw new ArgumentNullException($"{viewName} does not match any available view");
+            }
+
+            var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), context.ModelState)
+            {
+                Model = model
+            };
+
+            using (var sw = new StringWriter())
+            {
+                var viewContext = new ViewContext(
+                    context,
+                    viewResult.View,
+                    viewDictionary,
+                    new TempDataDictionary(context.HttpContext, context.HttpContext.RequestServices.GetRequiredService<ITempDataProvider>()),
+                    sw,
+                    new HtmlHelperOptions()
+                );
+
+                viewResult.View.RenderAsync(viewContext).GetAwaiter().GetResult();
+
+                return sw.ToString();
+            }
+        }
 
         public string OrderProduct(OrderParams order)
         {
@@ -374,6 +470,7 @@ namespace DemoProject.Controllers
             string orderd =  _demoreppo.OrderProducts(order , userId);
             if (orderd == "true")
             {
+                SendEmailForOrder(order, "dhruv.gadhesariya@internal.mail");
                 TempData["success"] = "Order Placed Successfully!!";
                 return "true";
             }
@@ -389,6 +486,11 @@ namespace DemoProject.Controllers
                 }
             }
             return "";
+        }
+
+        public string GetAvailableCountryForProduct(long ProductId)
+        {
+            return JsonSerializer.Serialize(_demoreppo.GetAvailableCountry(ProductId));
         }
         #endregion
         #region Privacy and error

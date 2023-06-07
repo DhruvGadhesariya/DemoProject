@@ -31,6 +31,6 @@ namespace DemoProject.Repository.Interface
 
         public IQueryable<Product> ApplyPagination(IQueryable<Product> query, ProductSearchParams obj);
 
-
+        public List<Product> FilterProductsWithOutPagination(ProductSearchParams obj);
     }
 }
