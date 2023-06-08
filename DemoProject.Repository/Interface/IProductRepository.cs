@@ -32,5 +32,13 @@ namespace DemoProject.Repository.Interface
         public IQueryable<Product> ApplyPagination(IQueryable<Product> query, ProductSearchParams obj);
 
         public List<Product> FilterProductsWithOutPagination(ProductSearchParams obj);
+
+        public List<OrderDetailsForMail> GetOrderDetails(List<Order> orders);
+
+        public OrderDetailsForMail GetOrderData(long OrderId);
+
+        public bool AreValidEmailAddresses(string[] emailList);
+
+
     }
 }

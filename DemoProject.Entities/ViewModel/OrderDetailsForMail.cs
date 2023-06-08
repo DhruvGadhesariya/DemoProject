@@ -10,7 +10,9 @@ namespace DemoProject.Entities.ViewModel
     {
         public long UserId { get; set; }
 
-        public long ProductId { get; set; }
+        public long? ProductId { get; set; }
+
+        public long OrderId { get; set; }
 
         public long CountryId { get; set; }
 
@@ -26,7 +28,13 @@ namespace DemoProject.Entities.ViewModel
 
         public string ProductName { get; set; } = string.Empty;
 
+        public string UserName { get; set; } = string.Empty;
+
         public DateTime Date { get; set; }
+
+        public DateTime From { get; set; }
+
+        public DateTime To { get; set; }
 
         public string Path { get; set; } = string.Empty ;
     }

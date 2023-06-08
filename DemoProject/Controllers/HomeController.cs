@@ -1,4 +1,6 @@
-﻿using DemoProject.Entities.Data;
+﻿
+#region Using Statements
+using DemoProject.Entities.Data;
 using DemoProject.Entities.Models;
 using DemoProject.Entities.ViewModel;
 using DemoProject.Models;
@@ -24,6 +26,9 @@ using System;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
+#endregion
+
+
 namespace DemoProject.Controllers
 {
 
@@ -36,14 +41,17 @@ namespace DemoProject.Controllers
         public readonly DemoDbContext _dbcontext;
 
         public readonly IDemoRepository _demoreppo;
+
+        public readonly IProductRepository _product;
         #endregion
 
         #region constructor , dependency inject
-        public HomeController(ILogger<HomeController> logger, DemoDbContext dbcontext, IDemoRepository demoRepository)
+        public HomeController(ILogger<HomeController> logger, DemoDbContext dbcontext, IDemoRepository demoRepository , IProductRepository product)
         {
             _logger = logger;
             _dbcontext = dbcontext;
             _demoreppo = demoRepository;
+            _product = product;
         }
 
         #endregion
@@ -377,13 +385,28 @@ namespace DemoProject.Controllers
         {
             return View();
         }
+
+        public IActionResult PreviewMail(long OrderId)
+       {
+            // Get the order details using the repository
+            var model = _demoreppo.GetOrderDetailForPreview(OrderId);
+            return View(model);
+        }
         public void SendEmailForOrder(OrderParams order, string email)
         {
+            // Get the user ID from the session
             var userId = HttpContext.Session.GetInt32("userid");
+
+            // Set the subject for the email
             var subject = "Order Placed..";
+
+            // Get the order details using the repository
             var model = _demoreppo.GetOrderDetail(order, (long)userId);
+
+            // Render the view to a string
             var body = RenderViewToString(ControllerContext, "MailBody", model);
 
+            // Create a new mail message
             var message = new MailMessage
             {
                 From = new MailAddress("dhruv.gadhesariya@internal.mail"),
@@ -393,16 +416,21 @@ namespace DemoProject.Controllers
                 IsBodyHtml = true
             };
 
+            // Set the attachment file path
             string attachmentFilePath1 = "C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Downloads\\filtered_19-.pdf";
+
+            // Create an attachment and add it to the message
             Attachment attachment1 = new Attachment(attachmentFilePath1);
             message.Attachments.Add(attachment1);
 
+            // Get the current order date and add it to the message headers
             DateTime orderDate = DateTime.Now;
             message.Headers.Add("Order-Date", orderDate.ToString("yyyy-MM-dd"));
 
-
+            // Create an alternate view for the HTML body
             AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, "text/html");
 
+            // Add linked resources images to the HTML view
             LinkedResource imageResource = new LinkedResource("C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Assets\\multifactor-authentificaton.png", "image/png");
             imageResource.ContentId = "myImage";
             htmlView.LinkedResources.Add(imageResource);
@@ -411,15 +439,17 @@ namespace DemoProject.Controllers
             imageResource2.ContentId = "myImage1";
             htmlView.LinkedResources.Add(imageResource2);
 
+            // Add the HTML view to the message
             message.AlternateViews.Add(htmlView);
+
             try
             {
+                // Create a new SMTP client and send the message
                 using (var client = new SmtpClient("172.16.10.7", 25))
                 {
                     client.EnableSsl = false;
                     client.UseDefaultCredentials = false;
                     client.Credentials = new NetworkCredential("dhruv.gadhesariya@internal.mail", "tatva123");
-
                     client.Send(message);
                 }
             }
@@ -427,14 +457,14 @@ namespace DemoProject.Controllers
             {
                 TempData["error"] = "error in sending the emails" + ex.Message;
             }
-            
         }
-
-
 
         public string RenderViewToString(ControllerContext context, string viewName, object model)
         {
+            // Get the view engine from the request services
             var viewEngine = context.HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as ICompositeViewEngine;
+
+            // Find the view based on the view name
             var viewResult = viewEngine.FindView(context, viewName, false);
 
             if (viewResult.View == null)
@@ -442,6 +472,7 @@ namespace DemoProject.Controllers
                 throw new ArgumentNullException($"{viewName} does not match any available view");
             }
 
+            // Create a view data dictionary with the model
             var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), context.ModelState)
             {
                 Model = model
@@ -449,6 +480,7 @@ namespace DemoProject.Controllers
 
             using (var sw = new StringWriter())
             {
+                // Create a view context and render the view to the string writer
                 var viewContext = new ViewContext(
                     context,
                     viewResult.View,
@@ -460,9 +492,11 @@ namespace DemoProject.Controllers
 
                 viewResult.View.RenderAsync(viewContext).GetAwaiter().GetResult();
 
+                // Return the rendered view as a string
                 return sw.ToString();
             }
         }
+
 
         public string OrderProduct(OrderParams order)
         {
@@ -503,6 +537,94 @@ namespace DemoProject.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        #endregion
+
+        #region SendMails 
+        public IActionResult SendInvite(long OrderId)
+        {
+            ViewBag.OrderId = OrderId;
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult SendInvite(long orderId, string[] EmailList)
+        {
+            // Check if the email addresses are valid
+            var checkEmails = _product.AreValidEmailAddresses(EmailList);
+
+            if (checkEmails)
+            {
+                // Get order data
+                var model = _product.GetOrderData(orderId);
+                var subject = "Order Placed..";
+
+                // Render the view to a string
+                var body = RenderViewToString(ControllerContext, "MailBody", model);
+
+                // Create a new mail message
+                var message = new MailMessage
+                {
+                    From = new MailAddress("dhruv.gadhesariya@internal.mail"),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+
+                // Add To mails
+                foreach (var email in EmailList)
+                {
+                    message.To.Add(email);
+                }
+
+                // Attach file
+                string attachmentFilePath1 = "C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Downloads\\filtered_19-.pdf";
+                Attachment attachment1 = new Attachment(attachmentFilePath1);
+                message.Attachments.Add(attachment1);
+
+                // Add custom header
+                DateTime orderDate = DateTime.Now;
+                message.Headers.Add("Order-Date", orderDate.ToString("yyyy-MM-dd"));
+
+                // Create alternate view for HTML body
+                AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, "text/html");
+
+                // Add linked resources images
+                LinkedResource imageResource = new LinkedResource("C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Assets\\multifactor-authentificaton.png", "image/png");
+                imageResource.ContentId = "myImage";
+                htmlView.LinkedResources.Add(imageResource);
+
+                LinkedResource imageResource2 = new LinkedResource("C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Assets\\download.jpg", "image/jpg");
+                imageResource2.ContentId = "myImage1";
+                htmlView.LinkedResources.Add(imageResource2);
+
+                // Add alternate view to the message
+                message.AlternateViews.Add(htmlView);
+
+                try
+                {
+                    // Send the email using SmtpClient
+                    using (var client = new SmtpClient("172.16.10.7", 25))
+                    {
+                        client.EnableSsl = false;
+                        client.UseDefaultCredentials = false;
+                        client.Credentials = new NetworkCredential("dhruv.gadhesariya@internal.mail", "tatva123");
+
+                        client.Send(message);
+                    }
+                }
+                catch (SmtpException ex)
+                {
+                    TempData["error"] = "error in sending the emails" + ex.Message;
+                }
+            }
+            else
+            {
+                TempData["error"] = "One of the email is not correct!!";
+            }
+
+            return View();
         }
 
         #endregion

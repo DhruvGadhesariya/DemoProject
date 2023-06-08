@@ -64,5 +64,7 @@ namespace DemoProject.Repository.Interface
         public List<Country> GetAvailableCountry(long ProductId);
 
         public OrderDetailsForMail GetOrderDetail(OrderParams order, long userId);
+
+        public OrderDetailsForMail GetOrderDetailForPreview(long orderId);
     }
 }

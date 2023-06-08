@@ -4,6 +4,8 @@ using DemoProject.Entities.ViewModel;
 using DemoProject.Repository.Interface;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 
 namespace DemoProject.Repository.Repository
 {
@@ -162,6 +164,7 @@ namespace DemoProject.Repository.Repository
 
             return query.ToList();
         }
+
         public IQueryable<Product> ApplySearchFilters(IQueryable<Product> query, ProductSearchParams obj)
         {
             if (!string.IsNullOrWhiteSpace(obj.Name))
@@ -192,9 +195,80 @@ namespace DemoProject.Repository.Repository
             return query;
         }
 
-        //public List<Country> GetAvailableCountries()
-        //{
+        public List<OrderDetailsForMail> GetOrderDetails(List<Order> orders)
+        {
+            
+            var orderDetails = new List<OrderDetailsForMail>();
 
-        //}
+            foreach (var order in orders)
+            {
+                var user = _dbContext.Users.Find(order.UserId);
+                var countryName = _dbContext.Countries.Find(order.CountryId).Name;
+                var cityName = _dbContext.Cities.Find(order.CityId).Name;
+
+                var orderDetail = new OrderDetailsForMail
+                {
+                    OrderId = order.OrderId,
+                    ProductId = order.ProductId,
+                    UserName = user.Fname + " " + user.Lname,
+                    From = order.FromTime ?? DateTime.MinValue,
+                    To = order.ToTime ?? DateTime.MinValue,
+                };
+
+                if (order.City != null)
+                {
+                    orderDetail.CountryName = countryName;
+                    orderDetail.CityName = cityName;
+                }
+
+                orderDetails.Add(orderDetail);
+            }
+
+            return orderDetails;
+        }
+
+        public OrderDetailsForMail GetOrderData(long OrderId)
+        {
+            var order = _dbContext.Orders.FirstOrDefault(o => o.OrderId == OrderId);
+            var user = _dbContext.Users.Find(order.UserId);
+            var countryName = _dbContext.Countries.Find(order.CountryId)?.Name;
+            var cityName = _dbContext.Cities.Find(order.CityId)?.Name;
+
+            var orderDetail = new OrderDetailsForMail
+            {
+                OrderId = order.OrderId,
+                ProductId = order.ProductId,
+                UserName = user?.Fname + " " + user?.Lname,
+                From = order.FromTime ?? DateTime.MinValue,
+                To = order.ToTime ?? DateTime.MinValue
+            };
+
+            if (order.City != null)
+            {
+                orderDetail.CountryName = countryName;
+                orderDetail.CityName = cityName;
+            }
+
+            return orderDetail;
+        }
+
+        public bool AreValidEmailAddresses(string[] emailList)
+        {
+            foreach (var email in emailList)
+            {
+                try
+                {
+                    var emailChecked = new System.Net.Mail.MailAddress(email);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        
     }
 }

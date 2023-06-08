@@ -7,13 +7,10 @@ using iTextSharp.text;
 using iTextSharp.text.pdf;
 using OfficeOpenXml;
 using System.Drawing;
-using TimeZoneNames;
-using NodaTime;
 using NodaTime.TimeZones;
 using System.Globalization;
 using System.Net;
-using Newtonsoft.Json.Linq;
-using Grpc.Core;
+using System.Net.Mail;
 
 namespace DemoProject.Repository.Repository
 {
@@ -553,6 +550,33 @@ namespace DemoProject.Repository.Repository
             return model;
         }
 
+        public OrderDetailsForMail GetOrderDetailForPreview(long orderId)
+        {
+            var order = _dbcontext.Orders.Find(orderId);
+            var user = _dbcontext.Users.Find(order.UserId);
+            var countryName = _dbcontext.Countries.Find(order.CountryId).Name;
+            var cityName = _dbcontext.Cities.Find(order.CityId).Name;
+            var productName = _dbcontext.Products.Find(order.ProductId).ProductName;
+
+            var model = new OrderDetailsForMail
+            {
+                UserId = (long)order.UserId,
+                ProductId = order.ProductId,
+                CountryId = (long)order.CountryId,
+                CityId = (long)order.CityId,
+                CountryName = countryName,
+                CityName = cityName,
+                FirstName = user.Fname,
+                LastName = user.Lname,
+                Date = DateTime.Now,
+                ProductName = productName,
+                OrderId = orderId,
+            };
+
+            return model;
+        }
         #endregion
+
+
     }
 }

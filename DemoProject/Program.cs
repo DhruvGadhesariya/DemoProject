@@ -24,6 +24,7 @@ builder.Services.AddSession(a =>
 {
     a.IdleTimeout = TimeSpan.FromSeconds(1800);
 });
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
