@@ -236,7 +236,7 @@ namespace DemoProject.Repository.Repository
 
             var orderDetail = new OrderDetailsForMail
             {
-                OrderId = order.OrderId,
+                OrderId = OrderId,
                 ProductId = order.ProductId,
                 UserName = user?.Fname + " " + user?.Lname,
                 From = order.FromTime ?? DateTime.MinValue,

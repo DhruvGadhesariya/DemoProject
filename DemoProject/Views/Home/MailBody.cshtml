@@ -26,7 +26,7 @@
                     <div class="row">
                         <div class="col-6">
                             <p>
-                                <label class="fs-5 fw-bold">Order ID :</label> @Model.UserId
+                                <label class="fs-5 fw-bold">Order ID :</label> @Model.OrderId
                             </p>
                             <p>
                                 <label class="fs-5 fw-bold">Product ID :</label> @Model.ProductId
@@ -41,7 +41,7 @@
 
                         <div class="col-6">
                             <p>
-                                <label class="fs-5 fw-bold">User Name :</label> @Model.FirstName &nbsp; @Model.LastName
+                                <label class="fs-5 fw-bold">User Name :</label> @Model.UserName
                             </p>
 
                             <p>
@@ -49,7 +49,11 @@
                             </p>
 
                             <p>
-                                <label class="fs-5 fw-bold">Date For :</label> @Model.Date.ToString("yyyy-MM-dd")
+                                <label class="fs-5 fw-bold"> From :</label> @Model.From
+                            </p>
+
+                            <p>
+                                <label class="fs-5 fw-bold"> To :</label> @Model.To
                             </p>
                         </div>
                     </div>

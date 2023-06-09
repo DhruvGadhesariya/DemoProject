@@ -386,11 +386,11 @@ namespace DemoProject.Controllers
             return View();
         }
 
-        public IActionResult PreviewMail(long OrderId)
-       {
+        public ActionResult PreviewMailForInvite(long OrderId)
+        {
             // Get the order details using the repository
             var model = _demoreppo.GetOrderDetailForPreview(OrderId);
-            return View(model);
+            return PartialView("_PreviewMail", model);
         }
         public void SendEmailForOrder(OrderParams order, string email)
         {
@@ -623,7 +623,7 @@ namespace DemoProject.Controllers
             {
                 TempData["error"] = "One of the email is not correct!!";
             }
-
+            TempData["success"] = "Mail sent successfully!!";
             return View();
         }
 

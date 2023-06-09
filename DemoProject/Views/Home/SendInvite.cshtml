@@ -29,31 +29,33 @@
     </nav>
 
     <div class="container mt-5">
-    <div class="row form-group">
-        <div class="col">
+        <div class="row form-group">
             <span class="fs-4">To : <span class="text-danger">*</span></span>
-            <input type="text"
-                   class="form-control text my-2 hiding"
-                   id="To"
-                   placeholder="Email"
-                   pattern="[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"/>
+            <div class="col">
+                
+                <input type="text"
+                       class="form-control text  hiding w-50"
+                       id="To"
+                       placeholder="Email"
+                       pattern="[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" />
+            </div>
         </div>
-    </div>
-    <div id="emailFieldsContainer">
-        
-    </div>
-    <div class="d-flex justify-content-between">
-          <div class="">
-            <button id="addEmailFieldButton" class="btn skill">Add Email Field</button>
-            <button id="submitButton" class="btn savePassword">Submit</button>
-          </div>
-          <div class=""> 
-            <button class="btn skill" onclick="location.href='@Url.Action("Orders","Products")'">Cancel</button>
-            <button class="btn savePassword" onclick="location.href='@Url.Action("PreviewMail","Home" , new {OrderId = @ViewBag.OrderId})'">Preview</button>
-          </div>
-</div>
+        <div id="emailFieldsContainer">
+        </div>
+        <div class="d-flex justify-content-between mt-2">
+            <div class="">
+                <button id="addEmailFieldButton" class="btn skill">Add Email Field</button>
+                <button id="submitButton" class="btn savePassword">Submit</button>
+            </div>
+            <div class="">
+                <button class="btn skill" onclick="CancelPreview();">Cancel</button>
+                <button class="btn savePassword" onclick="AddPreview(@ViewBag.OrderId);">Preview</button>
+            </div>
+        </div>
 
-</div>
+    </div>
+    <div id="preview">
+    </div>
 </body>
 <style>
     .btn.savePassword {
@@ -62,95 +64,137 @@
         color: black;
         padding: 8px 33px 8px 33px;
     }
-
     .btn.skill {
         border: 2px solid orange;
         border-radius: 25px;
         color: #757575;
         padding: 8px 37px 8px 37px;
     }
-    </style>
+
+</style>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script>
-    $(document).ready(function() {
-    var fieldCounter = 0;
-
-    // Function to create a new email input field
-    function createEmailField() {
-        fieldCounter++;
-        var emailField = '<div class="row form-group">' +
-            '<div class="col">' +
-            '<input type="email" name="emails[]" class="form-control email-input my-2" placeholder="Email"  pattern="[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" required />' +
-            '</div>' +
-            '</div>';
-        return emailField;
+    function CancelPreview(){
+        $('#preview').empty();
     }
+     $(document).ready(function() {
+      var fieldCounter = 0;
 
-    // Add an email input field when the "Add Email Field" button is clicked
-    $('#addEmailFieldButton').click(function() {
+      // Function to create a new email input field
+      function createEmailField() {
+        fieldCounter++;
+        var emailField =
+          '<div class="row form-group my-2">' +
+          '<div class="col d-flex">' +
+          '<input type="email" name="emails" class="form-control email-input  w-50" placeholder="Email"  pattern="[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" required />' +
+          '<button class="btn skill cancel-button ms-2">Cancel</button>' +
+          '</div>' +
+          '</div>';
+        return emailField;
+      }
+
+      // Add an email input field when the "Add Email Field" button is clicked
+      $('#addEmailFieldButton').click(function() {
+
+        var emptyFields = false;
+        $('.email-input').each(function() {
+          if ($(this).val() === '') {
+            emptyFields = true;
+            return false;
+          }
+        });
+
+        if (emptyFields) {
+          alert('Please fill in all email input fields before adding another.');
+          return;
+        }
+
         var emailField = createEmailField();
         $('#emailFieldsContainer').append(emailField);
-    });
+      });
 
-    // Handle the button click 
-   $('#submitButton').click(function() {
-    debugger;
-    var toEmail = $('#To').val();
+      // Handle cancel button click 
+      $('#emailFieldsContainer').on('click', '.cancel-button', function() {
+        $(this).closest('.form-group').remove();
+      });
 
-    if (!toEmail) {
-        alert('Please enter the "To" email address.');
-        return;
-    }
+      // Handle the button click
+      $('#submitButton').click(function() {
+        debugger;
+        var toEmail = $('#To').val();
 
-    var emailInputs = $('.email-input');
-    var emails = [];
+        if (!toEmail) {
+          alert('Please enter the "To" email address.');
+          return;
+        }
 
-    // Loop through each email input field and collect the values
-     emailInputs.each(function() {
-        var email = $(this).val();
-        if (email) {
+        var emailInputs = $('.email-input');
+        var emails = [];
+
+        // Loop through each email input field and collect the values
+        emailInputs.each(function() {
+          var email = $(this).val();
+          if (email) {
             // Validate the email format
             if (!isValidEmail(email)) {
-                alert('Invalid email format: ' + email);
-                return false; // Stop the loop if an invalid email is found
+              alert('Invalid email format, please check your format...');
+              return false;
             }
             emails.push(email);
+          }
+        });
+
+        // Check if any email input field has been filled
+        if (emails.length === 0) {
+          alert('Please enter at least two valid email addresses.');
+          return;
         }
-    });
 
+        // the data to be sent to the server
+        var formData = {
+          OrderId: @ViewBag.OrderId,
+          EmailList: [toEmail, ...emails]
+        };
 
-    // Check if any email input field has been filled
-    if (emails.length === 0) {
-        alert('Please enter at least two valid email addresses.');
-        return;
-    }
-
-    // Prepare the data to be sent to the server
-    var formData = {
-        OrderId: @ViewBag.OrderId,
-        EmailList: [toEmail, ...emails]
-    };
-
-    // Perform AJAX request to send email data to the server
-    $.ajax({
-        url: '/Home/SendInvite',
-        type: 'POST',
-        data: formData,
-        success: function(response) {
+        // Perform AJAX request to send email data to the server
+        $.ajax({
+          url: '/Home/SendInvite',
+          type: 'POST',
+          data: formData,
+          success: function(response) {
             $('#emailFieldsContainer').empty();
             $('#To').val('');
-        },
-        error: function(xhr, status, error) {
+          },
+          error: function(xhr, status, error) {
             alert('Failed to send emails. Please try again later.');
-        }
+          }
         });
+      });
     });
-});
 
-function isValidEmail(email) {
-  var emailRegex = new RegExp('^[^\\s]+[^\\s]+\\.[^\\s]+$');
-  return emailRegex.test(email);
-}
+            function isValidEmail(email) {
+              var emailRegex = /^[A-Za-z0-9._%+-]+@@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+              return emailRegex.test(email);
+            }
+
+            function AddPreview(OrderId){
+                 $.ajax({
+                    url: '/Home/PreviewMailForInvite',
+                    type: 'POST',
+                    data: {
+                        OrderId : OrderId
+                    },
+                    success: function(data) {
+                        $('#preview').html(data);
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Failed to load preview. Please try again later.');
+                    }
+                    });
+            }
+
+
+
 
 </script>
 
