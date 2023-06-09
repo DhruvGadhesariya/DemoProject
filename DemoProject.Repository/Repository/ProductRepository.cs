@@ -103,8 +103,8 @@ namespace DemoProject.Repository.Repository
         public ProductViewModel GetViewModelData(long productId)
         {
             var availableProducts = _dbContext.AvailableProducts
-                .Where(ap => ap.ProductId == productId)
-                .GroupBy(ap => ap.CountryId)
+                .Where(ap => ap.ProductId == productId)?
+                .GroupBy(ap => ap.CountryId)?
                 .ToDictionary(g => g.Key, g => g.Select(ap => ap.CityId).ToList());
 
             var model = new ProductViewModel
@@ -203,8 +203,8 @@ namespace DemoProject.Repository.Repository
             foreach (var order in orders)
             {
                 var user = _dbContext.Users.Find(order.UserId);
-                var countryName = _dbContext.Countries.Find(order.CountryId).Name;
-                var cityName = _dbContext.Cities.Find(order.CityId).Name;
+                var countryName = _dbContext.Countries.Find(order.CountryId)?.Name;
+                var cityName = _dbContext.Cities.Find(order.CityId)?.Name;
 
                 var orderDetail = new OrderDetailsForMail
                 {

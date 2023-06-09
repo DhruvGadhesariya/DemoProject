@@ -37,5 +37,7 @@ namespace DemoProject.Entities.ViewModel
         public DateTime To { get; set; }
 
         public string Path { get; set; } = string.Empty ;
+
+        public List<string> Emails { get; set; } = new List<string>() ;
     }
 }

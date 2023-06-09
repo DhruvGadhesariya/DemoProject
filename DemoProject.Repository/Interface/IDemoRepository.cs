@@ -65,6 +65,6 @@ namespace DemoProject.Repository.Interface
 
         public OrderDetailsForMail GetOrderDetail(OrderParams order, long userId);
 
-        public OrderDetailsForMail GetOrderDetailForPreview(long orderId);
+        public OrderDetailsForMail GetOrderDetailForPreview(long orderId, string[] EmailList);
     }
 }

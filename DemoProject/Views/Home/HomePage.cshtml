@@ -41,6 +41,8 @@
                 <button type="button" class="btn savePassword " onclick="location.href='@Url.Action("Products","Products")'">Product Management</button>
                 <button type="button" class="btn savePassword ms-2" data-bs-toggle="modal" data-bs-target="#addProducts"> &#43; Order</button>
                 <button type="button" class="btn savePassword ms-2" onclick="location.href='@Url.Action("Orders","Products")'">All Orders</button>
+                
+
 
                 <div class="modal fade" id="addProducts" tabindex="-1" aria-labelledby="addProductsLabel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -380,6 +382,9 @@
 
 </style>
 <script>
+
+   
+
     $(document).ready(function(){
         Search(1,'Fname','up',5);
     });

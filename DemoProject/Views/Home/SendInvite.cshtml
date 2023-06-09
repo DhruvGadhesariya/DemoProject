@@ -34,10 +34,10 @@
             <div class="col">
                 
                 <input type="text"
-                       class="form-control text  hiding w-50"
+                       class="form-control text email-input  hiding w-50"
                        id="To"
                        placeholder="Email"
-                       pattern="[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" />
+                       pattern="[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+@@+\.[a-zA-Z]{2,}" />
             </div>
         </div>
         <div id="emailFieldsContainer">
@@ -86,26 +86,36 @@
         var emailField =
           '<div class="row form-group my-2">' +
           '<div class="col d-flex">' +
-          '<input type="email" name="emails" class="form-control email-input  w-50" placeholder="Email"  pattern="[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" required />' +
+          '<input type="email" name="emails" class="form-control email-input  w-50" placeholder="Email"  pattern="[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+@@+\.[a-zA-Z]{2,}" required />' +
           '<button class="btn skill cancel-button ms-2">Cancel</button>' +
           '</div>' +
           '</div>';
         return emailField;
       }
 
-      // Add an email input field when the "Add Email Field" button is clicked
+      // Add an email input field when the Add Email Field button is clicked
       $('#addEmailFieldButton').click(function() {
-
+          
         var emptyFields = false;
+        var validFields = false;
         $('.email-input').each(function() {
           if ($(this).val() === '') {
             emptyFields = true;
             return false;
           }
+          if (!isValidEmail($(this).val())) {
+              validFields = true;
+              return false;
+         }
         });
 
         if (emptyFields) {
           alert('Please fill in all email input fields before adding another.');
+          return;
+        }
+
+        if(validFields){
+            alert('Please enter valid input before adding another input.');
           return;
         }
 
@@ -119,15 +129,9 @@
       });
 
       // Handle the button click
-      $('#submitButton').click(function() {
+      $('#submitButton').click(function() { 
         debugger;
-        var toEmail = $('#To').val();
-
-        if (!toEmail) {
-          alert('Please enter the "To" email address.');
-          return;
-        }
-
+       
         var emailInputs = $('.email-input');
         var emails = [];
 
@@ -153,7 +157,7 @@
         // the data to be sent to the server
         var formData = {
           OrderId: @ViewBag.OrderId,
-          EmailList: [toEmail, ...emails]
+          EmailList: [...emails]
         };
 
         // Perform AJAX request to send email data to the server
@@ -172,26 +176,42 @@
       });
     });
 
-            function isValidEmail(email) {
-              var emailRegex = /^[A-Za-z0-9._%+-]+@@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-              return emailRegex.test(email);
-            }
+    function isValidEmail(email) {
+      var emailRegex = /^[A-Za-z0-9._%+-]+@@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+      return emailRegex.test(email);
+    }
 
-            function AddPreview(OrderId){
-                 $.ajax({
-                    url: '/Home/PreviewMailForInvite',
-                    type: 'POST',
-                    data: {
-                        OrderId : OrderId
-                    },
-                    success: function(data) {
-                        $('#preview').html(data);
-                    },
-                    error: function(xhr, status, error) {
-                        alert('Failed to load preview. Please try again later.');
-                    }
-                    });
+    function AddPreview(OrderId){
+
+        var emailInputs = $('.email-input');
+        var emails = [];
+
+       
+        emailInputs.each(function() {
+          var email = $(this).val();
+          if (email) {
+            if (!isValidEmail(email)) {
+              alert('Invalid email format, please check your format...');
+              return false;
             }
+            emails.push(email);
+          }
+        });
+         $.ajax({
+            url: '/Home/MailBody',
+            type: 'POST',
+            data: {
+                OrderId : OrderId,
+                EmailList:[...emails]
+            },
+            success: function(data) {
+                $('#preview').html(data);
+            },
+            error: function(xhr, status, error) {
+                alert('Failed to load preview. Please try again later.');
+            }
+         });
+    }
 
 
 

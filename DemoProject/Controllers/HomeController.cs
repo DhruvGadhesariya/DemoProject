@@ -386,12 +386,14 @@ namespace DemoProject.Controllers
             return View();
         }
 
-        public ActionResult PreviewMailForInvite(long OrderId)
+        [HttpPost]
+        public IActionResult MailBody(long OrderId , string[] EmailList)
         {
             // Get the order details using the repository
-            var model = _demoreppo.GetOrderDetailForPreview(OrderId);
-            return PartialView("_PreviewMail", model);
+            var model = _demoreppo.GetOrderDetailForPreview(OrderId , EmailList);
+            return View(model);
         }
+
         public void SendEmailForOrder(OrderParams order, string email)
         {
             // Get the user ID from the session

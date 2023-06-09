@@ -550,7 +550,7 @@ namespace DemoProject.Repository.Repository
             return model;
         }
 
-        public OrderDetailsForMail GetOrderDetailForPreview(long orderId)
+        public OrderDetailsForMail GetOrderDetailForPreview(long orderId , string[] EmailList)
         {
             var order = _dbcontext.Orders.Find(orderId);
             var user = _dbcontext.Users.Find(order.UserId);
@@ -571,7 +571,14 @@ namespace DemoProject.Repository.Repository
                 Date = DateTime.Now,
                 ProductName = productName,
                 OrderId = orderId,
+                
             };
+
+            for(var i =0; i<EmailList.Length; i++)
+            {
+                var email = EmailList[i];
+                model.Emails.Add(email);
+            }
 
             return model;
         }
