@@ -165,6 +165,7 @@ function clearModal() {
     $("#userAdd").trigger("reset");
     $("#selectCityList").empty();
     $("#addOrder").trigger("reset");
+    $("#empAdd").trigger("reset");
     $('#timestatus').html("");
     $("#CityForOrder").empty();
 }
@@ -533,6 +534,47 @@ function SendMail() {
     })
 }
 
+function SearchEmp(pg, finder, sort) {
 
+    var pagesize = $('#selectentities').find(":selected").val();
+    var obj = GetFilter();
+
+    if (pg == undefined) {
+        pg = 1;
+    }
+
+    $.ajax({
+        url: "/Employee/Search",
+        type: "post",
+        data: {
+            SearchFname: obj.SearchFname,
+            SearchLname: obj.SearchLname,
+            SearchEmail: obj.SearchEmail,
+            Pg: pg,
+            Finder: finder,
+            Sort: sort,
+            PageSize: pagesize
+        },
+        success: function (data) {
+            $('#dataEmp').html(data);
+        }
+    })
+    $.ajax({
+        url: "/Employee/Pagination",
+        type: "post",
+        data: {
+            SearchFname: obj.SearchFname,
+            SearchLname: obj.SearchLname,
+            SearchEmail: obj.SearchEmail,
+            Pg: pg,
+            Finder: finder,
+            Sort: sort,
+            PageSize: pagesize
+        },
+        success: function (data) {
+            $('#emppagination').html(data);
+        }
+    })
+}
 
 

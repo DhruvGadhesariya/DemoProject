@@ -22,7 +22,7 @@
         <div class="collapse navbar-collapse w-100 d-flex justify-content-between" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto d-flex align-items-center justify-content-between w-100">
                 <li class="nav-item active ">
-                    <a class="nav-link text-white" asp-controller="Home" asp-action="HomePage">Home <span class="sr-only">(current)</span></a>
+                    <a class="nav-link text-white" asp-controller="Home" asp-action="HomePage">Home</a>
                 </li>
                 <li class="nav-item me-3">
                     <form method="post" asp-controller="Home" asp-action="Logout">
@@ -38,6 +38,7 @@
         <div class="row mt-3 ms-1">
             <div class="d-flex justify-content-between p-0 w-75" role="search">
                 <span class="pagetitle fs-3 fw-bold me-auto">User</span>
+                <button type="button" class="btn savePassword mx-2" onclick="location.href='@Url.Action("Employee","Employee")'">Employees</button>
                 <button type="button" class="btn savePassword " onclick="location.href='@Url.Action("Products","Products")'">Product Management</button>
                 <button type="button" class="btn savePassword ms-2" data-bs-toggle="modal" data-bs-target="#addProducts"> &#43; Order</button>
                 <button type="button" class="btn savePassword ms-2" onclick="location.href='@Url.Action("Orders","Products")'">All Orders</button>
@@ -267,13 +268,13 @@
                     </tr>
                     <tr class="bg-light tablehead">
                         <th scope="col">
-                            <input class="w-50" type="search" name="SearchFname" placeholder="Search" oninput="Search(1,'Fname')">
+                            <input class="w-50" type="search" name="SearchFname" placeholder="Search" oninput="Search(1,'Fname','up')">
                         </th>
                         <th scope="col">
-                            <input class="w-50 " type="search" name="SearchLname" placeholder="Search" oninput="Search(1,'Lname')">
+                            <input class="w-50 " type="search" name="SearchLname" placeholder="Search" oninput="Search(1,'Lname','up')">
                         </th>
                         <th scope="col">
-                            <input class="w-50 " type="search" name="SearchEmail" placeholder="Search" oninput="Search(1,'Email')">
+                            <input class="w-50 " type="search" name="SearchEmail" placeholder="Search" oninput="Search(1,'Email','up')">
                         </th>
                         <th scope="col">
                         </th>
@@ -386,7 +387,7 @@
    
 
     $(document).ready(function(){
-        Search(1,'Fname','up',5);
+        Search(1,'Fname','up');
     });
 
     function GetCountryBasedOnProduct(){

@@ -22,6 +22,8 @@ public partial class DemoDbContext : DbContext
 
     public virtual DbSet<Country> Countries { get; set; }
 
+    public virtual DbSet<Employee> Employees { get; set; }
+
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<Product> Products { get; set; }
@@ -46,7 +48,6 @@ public partial class DemoDbContext : DbContext
             entity.HasOne(d => d.City).WithMany(p => p.AvailableProducts)
                 .HasForeignKey(d => d.CityId)
                 .HasConstraintName("FK_AvailableProducts_city");
-
         });
 
         modelBuilder.Entity<City>(entity =>
@@ -101,6 +102,40 @@ public partial class DemoDbContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("name");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<Employee>(entity =>
+        {
+            entity.HasKey(e => e.EmpId).HasName("PK__Employee__1299A861DBC9EC00");
+
+            entity.ToTable("Employee");
+
+            entity.Property(e => e.EmpId).HasColumnName("emp_id");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.DeletedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("deleted_at");
+            entity.Property(e => e.Email)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("email");
+            entity.Property(e => e.Firstname)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("firstname");
+            entity.Property(e => e.Lastname)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("lastname");
+            entity.Property(e => e.Password)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("password");
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");

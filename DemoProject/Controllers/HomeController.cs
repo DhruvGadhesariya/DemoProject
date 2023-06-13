@@ -349,8 +349,7 @@ namespace DemoProject.Controllers
             ViewBag.usersList = usersData;
             var list = _dbcontext.Users.Count(a => a.DeletedAt == null);
             if (string.IsNullOrEmpty(obj.SearchEmail) && string.IsNullOrEmpty(obj.SearchLname) && string.IsNullOrEmpty(obj.SearchFname))
-            {
-                
+            { 
                 ViewBag.Totalpages1 = Math.Ceiling(list / obj.PageSize);
             }
             else
@@ -471,7 +470,7 @@ namespace DemoProject.Controllers
 
             if (viewResult.View == null)
             {
-                throw new ArgumentNullException($"{viewName} does not match any available view");
+                throw new ArgumentNullException($"{viewName} does not match any view");
             }
 
             // Create a view data dictionary with the model

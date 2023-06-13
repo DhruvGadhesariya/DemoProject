@@ -1,0 +1,93 @@
+﻿@using DemoProject.Entities.Models
+@model List<Employee>
+
+        @foreach (var item in @Model)
+        {
+            <tr>
+                <td>@item.Firstname</td>
+                <td>@item.Lastname</td>
+                <td>@item.Email</td>
+                <td>
+
+                    <button class="btn btn-outline-secondary border-0" data-bs-toggle="modal" data-bs-target="#editEmployee" onclick="GetEmpData(@item.EmpId)"> Edit </button>&nbsp;
+                    <div class="modal fade" id="editEmployee" tabindex="-1" aria-labelledby="editUserLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editSheetGoalLabel">Edit Employee</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="form-example mt-2" method="post">
+                                        <div class="row form-group">
+
+                                            <div class="col-6">
+                                                <span class="fs-4">Email<span class="text-danger">*</span></span>
+                                                <input type="text"
+                                                   class="form-control text my-2 hiding"
+                                                   id="email"
+                                                   placeholder="Enter Email" />
+
+                                            </div>
+                                            <input type="hidden" id="empId" value="@item.EmpId">
+                                        </div>
+                                        <div class="row form-group">
+                                            <div class="col">
+                                                <span class="fs-4">FirstName<span class="text-danger">*</span></span>
+                                                <input type="text"
+                                                   class="form-control text my-2 hiding"
+                                                   id="fname"
+                                                   placeholder="Enter First Name" />
+
+                                            </div>
+                                            <div class="col">
+                                                <span class="fs-4">LastName<span class="text-danger">*</span></span>
+                                                <input type="text"
+                                                   class="form-control text my-2 hiding"
+                                                   id="lname"
+                                                   placeholder="Enter Last Name" />
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 d-flex justify-content-end">
+                                            <button class="btn skill"
+                                                type="button"
+                                                data-bs-dismiss="modal" aria-label="Close">
+                                                Cancle
+                                            </button>
+                                            <input type="hidden" id="userid">
+                                            <button class="btn savePassword ms-2"
+                                                type="button"
+                                                id="submit"
+                                                data-bs-dismiss="modal"
+                                                onclick="AfterEditAddEmp()">
+                                                Submit
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-danger border-0" onclick="RemoveEmployee(@item.EmpId)">Remove</button>
+                </td>
+            </tr>
+        }
+       
+<style>
+    .page-link {
+        color: black;
+    }
+
+    .page-item button:hover {
+        background: black;
+        color: white;
+    }
+
+    .page-active button {
+        background: black;
+        color: white;
+    }
+</style>
+
+
+
