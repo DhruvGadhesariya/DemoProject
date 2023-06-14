@@ -11,17 +11,17 @@
 
                     <button class="btn btn-outline-secondary border-0" data-bs-toggle="modal" data-bs-target="#editEmployee" onclick="GetEmpData(@item.EmpId)"> Edit </button>&nbsp;
                     <div class="modal fade" id="editEmployee" tabindex="-1" aria-labelledby="editUserLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-dialog modal-dialog-centered modal-md">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="editSheetGoalLabel">Edit Employee</h5>
+                                    <h5 class="modal-title fs-2 fw-bold" id="editSheetGoalLabel">Edit Employee</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
                                     <form class="form-example mt-2" method="post">
                                         <div class="row form-group">
 
-                                            <div class="col-6">
+                                            <div class="">
                                                 <span class="fs-4">Email<span class="text-danger">*</span></span>
                                                 <input type="text"
                                                    class="form-control text my-2 hiding"
@@ -30,9 +30,8 @@
 
                                             </div>
                                             <input type="hidden" id="empId" value="@item.EmpId">
-                                        </div>
-                                        <div class="row form-group">
-                                            <div class="col">
+                                        
+                                            <div class="">
                                                 <span class="fs-4">FirstName<span class="text-danger">*</span></span>
                                                 <input type="text"
                                                    class="form-control text my-2 hiding"
@@ -40,7 +39,7 @@
                                                    placeholder="Enter First Name" />
 
                                             </div>
-                                            <div class="col">
+                                            <div class="">
                                                 <span class="fs-4">LastName<span class="text-danger">*</span></span>
                                                 <input type="text"
                                                    class="form-control text my-2 hiding"

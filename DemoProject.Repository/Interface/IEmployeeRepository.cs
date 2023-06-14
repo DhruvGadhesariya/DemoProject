@@ -19,5 +19,8 @@ namespace DemoProject.Repository.Interface
 
         public bool DeleteEmployee(long empId);
 
+        public List<Employee> FilterEmployee(UserSearchParams obj);
+
+        public List<Employee> FilterWithoutPg(UserSearchParams obj);
     }
 }

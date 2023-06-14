@@ -34,10 +34,10 @@
             <button type="button" class="btn savePassword mx-2" data-bs-toggle="modal" data-bs-target="#addemp"> &#43; Employee</button>
 
             <div class="modal fade" id="addemp" tabindex="-1" aria-labelledby="addempLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-dialog modal-dialog-centered modal-md">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="addSheetLabel">Add Employee</h5>
+                            <h5 class="modal-title fs-2 fw-bold" id="addSheetLabel">Add Employee</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -111,30 +111,30 @@
                     <tr class=" tablehead">
                         <th scope="col">
                             FirstName
-                            <i class="bi bi-arrow-up" onclick="SearchEmp(1,'Fname','up')"></i>
-                            <i class="bi bi-arrow-down" onclick="SearchEmp(1,'Fname','down')"></i>
+                            <i class="bi bi-arrow-up" onclick="SearchEmp(1,'firstname','up')"></i>
+                            <i class="bi bi-arrow-down" onclick="SearchEmp(1,'firstname','down')"></i>
                         </th>
                         <th scope="col">
                             LastName
-                            <i class="bi bi-arrow-up" onclick="SearchEmp(1,'Lname','up')"></i>
-                            <i class="bi bi-arrow-down" onclick="SearchEmp(1,'Lname','down')"></i>
+                            <i class="bi bi-arrow-up" onclick="SearchEmp(1,'lastname','up')"></i>
+                            <i class="bi bi-arrow-down" onclick="SearchEmp(1,'lastname','down')"></i>
                         </th>
                         <th scope="col">
                             Email
-                            <i class="bi bi-arrow-up" onclick="SearchEmp(1,'Email','up')"></i>
-                            <i class="bi bi-arrow-down" onclick="SearchEmp(1,'Email','down')"></i>
+                            <i class="bi bi-arrow-up" onclick="SearchEmp(1,'email','up')"></i>
+                            <i class="bi bi-arrow-down" onclick="SearchEmp(1,'email','down')"></i>
                         </th>
                         <th scope="col">Action </th>
                     </tr>
                     <tr class="bg-light tablehead">
                         <th scope="col">
-                            <input class="w-50" type="search" name="SearchFname" placeholder="Search" oninput="SearchEmp(1,'Firstname','up')">
+                            <input class="w-50" type="search" name="SearchFname" placeholder="Search" oninput="SearchEmp(1,'firstname','up')">
                         </th>
                         <th scope="col">
-                            <input class="w-50 " type="search" name="SearchLname" placeholder="Search" oninput="SearchEmp(1,'Lastname','up')">
+                            <input class="w-50 " type="search" name="SearchLname" placeholder="Search" oninput="SearchEmp(1,'lastname','up')">
                         </th>
                         <th scope="col">
-                            <input class="w-50 " type="search" name="SearchEmail" placeholder="Search" oninput="SearchEmp(1,'Email','up')">
+                            <input class="w-50 " type="search" name="SearchEmail" placeholder="Search" oninput="SearchEmp(1,'email','up')">
                         </th>
                         <th scope="col">
                         </th>
@@ -148,7 +148,7 @@
                     <span>
                         show
                     </span>
-                    <select id="selectentities" onchange="SearchEmp();">
+                    <select id="selectEmployees" onchange="SearchEmp(1,'Firstname','up');">
                         <option value="5">5</option>
                         <option value="10">10</option>
                         <option value="15">15</option>
@@ -159,7 +159,7 @@
                     </span>
                 </div>
                 <div id="emppagination">
-                    <partial name="_Pagination" />
+                    
                 </div>
             </div>
         </div>
@@ -173,7 +173,7 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script>
     $(document).ready(function(){
-        SearchEmp(1,'Firstname','up');
+        SearchEmp(1,'firstname','up');
     });
 
     function AddEmp(){

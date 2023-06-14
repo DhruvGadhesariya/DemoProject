@@ -329,7 +329,7 @@ namespace DemoProject.Controllers
             ViewBag.usersList = usersData;
 
             var list = _dbcontext.Users.Count(a => a.DeletedAt == null);
-            ViewBag.Totalpages1 = Math.Ceiling(list / obj.PageSize);
+            ViewBag.Totalpages1 = Math.Ceiling(list / (double)obj.PageSize);
             ViewBag.currentPage = obj.Pg;
             ViewBag.Finder = obj.Finder;
             ViewBag.Sort = obj.Sort;
@@ -350,11 +350,11 @@ namespace DemoProject.Controllers
             var list = _dbcontext.Users.Count(a => a.DeletedAt == null);
             if (string.IsNullOrEmpty(obj.SearchEmail) && string.IsNullOrEmpty(obj.SearchLname) && string.IsNullOrEmpty(obj.SearchFname))
             { 
-                ViewBag.Totalpages1 = Math.Ceiling(list / obj.PageSize);
+                ViewBag.Totalpages1 = Math.Ceiling(list / (double)obj.PageSize);
             }
             else
             {
-                ViewBag.Totalpages1 = Math.Ceiling(usersData / obj.PageSize);
+                ViewBag.Totalpages1 = Math.Ceiling(usersData / (double)obj.PageSize);
             }
             ViewBag.currentPage = obj.Pg;
             ViewBag.Finder = obj.Finder;
@@ -528,6 +528,7 @@ namespace DemoProject.Controllers
             return JsonSerializer.Serialize(_demoreppo.GetAvailableCountry(ProductId));
         }
         #endregion
+
         #region Privacy and error
         public IActionResult Privacy()
         {

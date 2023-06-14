@@ -535,8 +535,8 @@ function SendMail() {
 }
 
 function SearchEmp(pg, finder, sort) {
-
-    var pagesize = $('#selectentities').find(":selected").val();
+    debugger
+    var pagesize = $('#selectEmployees').find(":selected").val();
     var obj = GetFilter();
 
     if (pg == undefined) {

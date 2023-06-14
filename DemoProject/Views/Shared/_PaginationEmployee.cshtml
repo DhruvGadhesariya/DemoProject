@@ -1,7 +1,7 @@
 ﻿
 <nav aria-label="Page navigation example d-flex justify-content-between">
     
-    <ul class="pagination justify-content-center w-75" onchange="Search()">
+    <ul class="pagination justify-content-center w-75" onchange="SearchEmp()">
         @{
             int prevPage = @ViewBag.currentPage - 1;
             string finder = @ViewBag.Finder;
@@ -11,7 +11,7 @@
         <li class="page-item">
             @if (@ViewBag.currentPage > 1)
             {
-                <button class="page-link" aria-label="Previous" onclick="Search(@prevPage , '@finder' ,'@sort')">
+                <button class="page-link" aria-label="Previous" onclick="SearchEmp(@prevPage , '@finder' ,'@sort')">
                     <span aria-hidden="true">&laquo;</span>
                 </button>
             }
@@ -26,13 +26,13 @@
                 @if (i == @ViewBag.currentPage)
                 {
                     <li class="page-item page-active">
-                        <button class="page-link" onclick="Search(@i , '@finder' ,'@sort' )">@i </button>
+                        <button class="page-link" onclick="SearchEmp(@i , '@finder' ,'@sort' )">@i </button>
                     </li>
                 }
                 else
                 {
                     <li class="page-item">
-                        <button class="page-link" onclick="Search(@i, '@finder' ,'@sort')">@i</button>
+                        <button class="page-link" onclick="SearchEmp(@i, '@finder' ,'@sort')">@i</button>
                     </li>
                 }
 
@@ -42,7 +42,7 @@
         <li class="page-item">
             @if (@ViewBag.currentPage < @ViewBag.Totalpages1)
             {
-                <button class="page-link" aria-label="Next" onclick="Search(@nextPage, '@finder' ,'@sort')">
+                <button class="page-link" aria-label="Next" onclick="SearchEmp(@nextPage, '@finder' ,'@sort')">
                     <span aria-hidden="true">&raquo;</span>
                 </button>
             }
@@ -50,4 +50,5 @@
         </li>
     </ul>
 </nav>
-
+<script src="~/js/Home.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>

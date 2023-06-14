@@ -14,6 +14,7 @@ using System.Net.Mail;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Web.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DemoProject.Repository.Repository
 {
@@ -31,121 +32,132 @@ namespace DemoProject.Repository.Repository
         }
         #endregion
 
+        #region Filter Employee Using Sp 
+         
+        // FiterEmployees Using sp and ef core features 
+        public List<Employee> FilterEmployee(UserSearchParams obj)
+        {
+            var employees = new List<Employee>();
+            var searchFnameParam = new SqlParameter("@SearchFname", obj.SearchFname);
+            var searchLnameParam = new SqlParameter("@SearchLname", obj.SearchLname);
+            var searchEmailParam = new SqlParameter("@SearchEmail", obj.SearchEmail);
+            var pgParam = new SqlParameter("@Pg", obj.Pg);
+            var finderParam = new SqlParameter("@Finder", obj.Finder);
+            var sortParam = new SqlParameter("@Sort", obj.Sort);
+            var pageSizeParam = new SqlParameter("@Pagesize", obj.PageSize);
+
+            var results = _dbcontext.EmployeeRecords.FromSql($"FilterEmployees {searchFnameParam}, {searchLnameParam}, {searchEmailParam}, {pgParam}, {finderParam}, {sortParam}, {pageSizeParam}").ToList();
+
+            foreach (var result in results)
+            {
+                var employee = new Employee
+                {
+                    Firstname = result.firstname,
+                    Lastname = result.lastname,
+                    Email = result.email,
+                    EmpId = result.emp_id
+                };
+
+                employees.Add(employee);
+            }
+            return employees;
+        }
+
+        public List<Employee> FilterWithoutPg(UserSearchParams obj)
+        {
+            var employees = new List<Employee>();
+
+            var searchFnameParam = new SqlParameter("@SearchFname", obj.SearchFname);
+            var searchLnameParam = new SqlParameter("@SearchLname", obj.SearchLname);
+            var searchEmailParam = new SqlParameter("@SearchEmail", obj.SearchEmail);
+            var finderParam = new SqlParameter("@Finder", obj.Finder);
+            var sortParam = new SqlParameter("@Sort", obj.Sort);
+
+            var results = _dbcontext.EmployeeRecords.FromSql($"FilterWithoutPagination {searchFnameParam}, {searchLnameParam}, {searchEmailParam}, {finderParam}, {sortParam}").ToList();
+
+            foreach (var result in results)
+            {
+                var employee = new Employee
+                {
+                    Firstname = result.firstname,
+                    Lastname = result.lastname,
+                    Email = result.email,
+                    EmpId = result.emp_id
+                };
+
+                employees.Add(employee);
+            }
+            return employees;
+        }
+        #endregion
+
         #region Employee CRUD Operations
 
         // Function to Create Employee
         public bool AddEmployee(Employee emp)
         {
-            try
-            {
-                using (var connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
+            var fname = new SqlParameter("@Firstname", emp.Firstname);
+            var lname = new SqlParameter("@Lastname", emp.Lastname);
+            var email = new SqlParameter("@Email", emp.Email);
+            var password = new SqlParameter("@Password", emp.Password);
+            var createdat = new SqlParameter("@CreateAt", DateTime.Now);
 
-                    using (var command = new SqlCommand("AddEmployee", connection))
-                    {
-                        command.CommandType = CommandType.StoredProcedure;
-                        command.Parameters.AddWithValue("@Firstname", emp.Firstname);
-                        command.Parameters.AddWithValue("@Lastname", emp.Lastname);
-                        command.Parameters.AddWithValue("@Email", emp.Email);
-                        command.Parameters.AddWithValue("@Password", emp.Password);
-                        command.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
+           var check =  _dbcontext.Database.ExecuteSqlRaw("EXEC AddEmployee @Firstname, @Lastname, @Email, @Password, @CreateAt",
+                                                          fname, lname, email, password, createdat);
 
-                        command.ExecuteNonQuery();
-                    }
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle exception
-                return false;
-            }
+            return check > 0;
         }
 
         // Function to Read Employee    
         public string GetEmployee(long empId)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            var id = new SqlParameter("@EmpId", empId);
+            var result = _dbcontext.Employees
+                .FromSql($"EXEC GetEmployee {id}")
+                .AsEnumerable()
+                .FirstOrDefault();
+
+            if (result != null)
             {
-                SqlCommand command = new SqlCommand("GetEmployee", connection);
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@EmpId", empId);
-
-                connection.Open();
-
-                using (SqlDataReader reader = command.ExecuteReader())
+                var employee = new Employee
                 {
-                    if (reader.Read())
-                    {
-                        var employeeData = new Employee
-                        {
-                            Firstname = reader["firstname"].ToString(),
-                            Lastname = reader["lastname"].ToString(),
-                            Email = reader["email"].ToString(),
-                            EmpId = empId
-                        };
+                    Firstname = result.Firstname,
+                    Lastname = result.Lastname,
+                    Email = result.Email,
+                    EmpId = result.EmpId
+                };
 
-                        string json = JsonConvert.SerializeObject(employeeData);
-
-                        return json;
-                    }
-                }
+                string json = JsonConvert.SerializeObject(employee);
+                return json;
             }
 
-            return null; // When no data is found
+            return null;
         }
 
         // Function to Update Employee
         public bool EditEmployee(Employee emp)
         {
-            try
-            {
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
+            var id = new SqlParameter("@EmpId", emp.EmpId);
+            var fname = new SqlParameter("@Firstname", emp.Firstname);
+            var lname = new SqlParameter("@Lastname", emp.Lastname);
+            var email = new SqlParameter("@Email", emp.Email);
+            var updatedAt = new SqlParameter("@UpdatedAt", DateTime.Now);
 
-                    using (SqlCommand command = new SqlCommand("UpdateEmployee", connection))
-                    {
-                        command.CommandType = CommandType.StoredProcedure;
+            var result = _dbcontext.Database.ExecuteSqlRaw("EXEC UpdateEmployee @EmpId, @Firstname, @Lastname, @Email, @UpdatedAt",
+                                                           id, fname, lname, email, updatedAt);
 
-                        command.Parameters.AddWithValue("@EmpId", emp.EmpId);
-                        command.Parameters.AddWithValue("@Firstname", emp.Firstname);
-                        command.Parameters.AddWithValue("@Lastname", emp.Lastname);
-                        command.Parameters.AddWithValue("@Email", emp.Email);
-                        command.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
-
-                        command.ExecuteNonQuery();
-                    }
-
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle exception 
-                return false;
-            }
+            return result > 0;
         }
 
         // Function to Delete Employee
         public bool DeleteEmployee(long empId)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                SqlCommand command = new SqlCommand("DeleteEmployee", connection);
-                command.CommandType = CommandType.StoredProcedure;
+            var id = new SqlParameter("@EmpId", empId);
+            var result = _dbcontext.Database.ExecuteSqlRaw("EXEC DeleteEmployee @EmpId", id);
 
-                command.Parameters.AddWithValue("@EmpId", empId);
-
-                connection.Open();
-
-                int rowsAffected = command.ExecuteNonQuery();
-
-                return rowsAffected > 0;
-            }
+            return result > 0;
         }
 
-        #endregion
+            #endregion
     }
 }

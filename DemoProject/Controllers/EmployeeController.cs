@@ -60,9 +60,7 @@ namespace DemoProject.Controllers
             obj.SearchEmail ??= string.Empty;
 
             // employees matching the search parameters
-            List<Employee> empData = _dbcontext.Employees
-                .Where(a => a.DeletedAt == null)
-                .ToList();
+            List<Employee> empData = _employee.FilterEmployee(obj);
 
             // the total count of employees for pagination
             var list = _dbcontext.Employees.Count(a => a.DeletedAt == null);
@@ -86,10 +84,7 @@ namespace DemoProject.Controllers
             obj.SearchEmail ??= string.Empty;
 
             // the count of all employees or filtered employees based on search parameters
-            var empData = _dbcontext.Employees
-                .Where(a => a.DeletedAt == null)
-                .ToList()
-                .Count();
+            var empData = _employee.FilterWithoutPg(obj);
 
             // the total count of employees for pagination
             var list = _dbcontext.Employees.Count(a => a.DeletedAt == null);
@@ -97,7 +92,7 @@ namespace DemoProject.Controllers
             // the total number of pages based on the page size
             ViewBag.TotalPages1 = string.IsNullOrEmpty(obj.SearchEmail) && string.IsNullOrEmpty(obj.SearchLname) && string.IsNullOrEmpty(obj.SearchFname)
                 ? Math.Ceiling(list / (double)obj.PageSize)
-                : Math.Ceiling(empData / (double)obj.PageSize);
+                : Math.Ceiling(empData.Count() / (double)obj.PageSize);
 
             // Set viewbag properties for view
             ViewBag.CurrentPage = obj.Pg;
@@ -105,7 +100,7 @@ namespace DemoProject.Controllers
             ViewBag.Sort = obj.Sort;
             ViewBag.PageSize = obj.PageSize;
 
-            return PartialView("_Pagination");
+            return PartialView("_PaginationEmployee");
         }
 
         #endregion
