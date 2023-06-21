@@ -34,7 +34,7 @@ namespace DemoProject.Repository.Repository
             DateTime currentDateTime = DateTime.Now;
             TimeSpan difference = currentDateTime - dateTimeToCheck;
 
-            return difference.TotalMinutes <= 5;
+            return difference.Duration().TotalMinutes <= 5;
         }
 
         public bool IsValidEmailAddress(string email)
@@ -89,6 +89,11 @@ namespace DemoProject.Repository.Repository
                 .ToList();
 
             return availableCities;
+        }
+
+        public List<City> GetCityForRegistration(long countryId)
+        {
+            return _dbcontext.Cities.Where(a => a.CountryId == countryId).ToList(); 
         }
 
         public void addUserByMe(User user)

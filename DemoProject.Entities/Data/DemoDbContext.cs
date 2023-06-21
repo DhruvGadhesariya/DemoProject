@@ -31,7 +31,6 @@ public partial class DemoDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserOtp> UserOtps { get; set; }
-
     public virtual DbSet<EmployeeModel> EmployeeRecords { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -205,9 +204,6 @@ public partial class DemoDbContext : DbContext
                 .HasColumnName("password");
             entity.Property(e => e.Phonenumber).HasColumnName("phonenumber");
             entity.Property(e => e.Pincode).HasColumnName("pincode");
-            entity.Property(e => e.UtcTime)
-                .HasColumnType("datetime")
-                .HasColumnName("UTC_time");
         });
 
         modelBuilder.Entity<UserOtp>(entity =>

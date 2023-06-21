@@ -25,5 +25,5 @@ public partial class User
 
     public DateTime? DeletedAt { get; set; }
 
-    public DateTime? UtcTime { get; set; }
+    public bool IsAdmin { get; set; }
 }

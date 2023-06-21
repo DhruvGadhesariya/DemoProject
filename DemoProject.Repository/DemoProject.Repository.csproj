@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Dapper" Version="2.0.143" />
     <PackageReference Include="EPPlus" Version="5.7.4" />
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
     <PackageReference Include="iTextSharp" Version="5.5.13.3" />

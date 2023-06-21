@@ -2,19 +2,11 @@
 using DemoProject.Entities.Models;
 using DemoProject.Entities.ViewModel;
 using DemoProject.Repository.Interface;
-using System.Data;
-using iTextSharp.text;
-using iTextSharp.text.pdf;
-using OfficeOpenXml;
-using System.Drawing;
-using NodaTime.TimeZones;
-using System.Globalization;
-using System.Net;
-using System.Net.Mail;
 using Microsoft.Data.SqlClient;
-using Newtonsoft.Json;
-using System.Web.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+
+
 
 namespace DemoProject.Repository.Repository
 {
@@ -108,26 +100,18 @@ namespace DemoProject.Repository.Repository
             return check > 0;
         }
 
-        // Function to Read Employee    
+        // Function to Read Employee     
         public string GetEmployee(long empId)
         {
             var id = new SqlParameter("@EmpId", empId);
             var result = _dbcontext.Employees
-                .FromSql($"EXEC GetEmployee {id}")
-                .AsEnumerable()
-                .FirstOrDefault();
+                        .FromSql($"EXEC GetEmployee {id}")
+                        .AsEnumerable()
+                        .FirstOrDefault();
 
             if (result != null)
             {
-                var employee = new Employee
-                {
-                    Firstname = result.Firstname,
-                    Lastname = result.Lastname,
-                    Email = result.Email,
-                    EmpId = result.EmpId
-                };
-
-                string json = JsonConvert.SerializeObject(employee);
+                string json = JsonConvert.SerializeObject(result);
                 return json;
             }
 
@@ -158,6 +142,6 @@ namespace DemoProject.Repository.Repository
             return result > 0;
         }
 
-            #endregion
+        #endregion
     }
 }

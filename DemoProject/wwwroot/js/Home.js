@@ -310,6 +310,42 @@ function GetCityForUser() {
     })
 }
 
+function GetCityForRegistration() {
+
+    var countryId = $('#ucountries').find(":selected").val();
+
+    $.ajax({
+
+        url: "/Home/GetCityForRegistration",
+        method: "POST",
+
+        data: {
+            "countryId": countryId
+        },
+
+        success: function (data) {
+            data = JSON.parse(data);
+            console.log(data);
+            $("#selectCityListsregistration").empty();
+
+            data.forEach((name) => {
+
+                document.getElementById("selectCityListsregistration").innerHTML += `
+                                                                           <option value="${name.CityId}">
+                                                                                   ${name.Name}
+                                                                           </option>`;
+            })
+
+
+        },
+        error: function (request, error) {
+            console.log(error);
+        }
+
+
+    })
+}
+
 function AddProducts() {
 
     var ProductId = $('#products').find(":selected").val();
@@ -379,8 +415,6 @@ function GetCheckedCountryIds(id) {
         error: function (request, error) {
             console.log(error);
         }
-
-
     });
 }
 
@@ -401,27 +435,33 @@ function AddProductByAdmin() {
         cityMappings[countryId].push(cityId);
     });
 
-    $.ajax({
-        url: '/Products/AddProductByAdmin',
-        type: 'POST',
-        datatype: 'json',
-        data: {
-            productName: productName,
-            productShared: productShared,
-            CityMappings: JSON.stringify(cityMappings)
-        },
-        success: function (response) {
-            if (response.success) {
-                alert(response.message);
-                location.reload();
-            } else {
-                alert(response.message);
+    if (!(productName)) {
+        alert("Please Enter Product Name..");
+    } else {
+        $.ajax({
+            url: '/Products/AddProductByAdmin',
+            type: 'POST',
+            datatype: 'json',
+            data: {
+                productName: productName,
+                productShared: productShared,
+                CityMappings: JSON.stringify(cityMappings)
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert(response.message);
+                }
             }
-        }
-    });
+        });
+    }
+
 }
 
 function EditProductByAdmin(productId) {
+    
     var productName = $('#productName').val().trim();
     var productShared = $('#productShared').find(":selected").val();
     var cityMappings = {};
@@ -438,27 +478,31 @@ function EditProductByAdmin(productId) {
         cityMappings[countryId].push(cityId);
     });
 
-    console.log(cityMappings);
-
-    $.ajax({
-        url: '/Products/EditProductByAdmin',
-        type: 'POST',
-        datatype: 'json',
-        data: {
-            productId: productId,
-            productName: productName,
-            productShared: productShared,
-            CityMappings: JSON.stringify(cityMappings)
-        },
-        success: function (response) {
-            if (response.success) {
-                alert(response.message);
-                window.location.href = '/Products/Products';
-            } else {
-                alert(response.message);
+    if (!(productName)) {
+        alert("Please Enter Product Name..");
+    }
+    else
+    {
+        $.ajax({
+            url: '/Products/EditProductByAdmin',
+            type: 'POST',
+            datatype: 'json',
+            data: {
+                productId: productId,
+                productName: productName,
+                productShared: productShared,
+                CityMappings: JSON.stringify(cityMappings)
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert(response.message);
+                    window.location.href = '/Products/Products';
+                } else {
+                    alert(response.message);
+                }
             }
-        }
-    });
+        });
+    }
 }
 
 function RemoveProductByAdmin(Id) {

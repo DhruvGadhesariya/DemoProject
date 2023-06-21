@@ -67,5 +67,6 @@ namespace DemoProject.Repository.Interface
 
         public OrderDetailsForMail GetOrderDetailForPreview(long orderId, string[] EmailList);
 
+        public List<City> GetCityForRegistration(long countryId);
     }
 }

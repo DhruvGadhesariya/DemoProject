@@ -87,14 +87,17 @@ namespace DemoProject.Controllers
                 HttpContext.Session.SetString("email", model.Email);
                 return RedirectToAction("OtpVerification", "Home", model);
             }
-            else if (emailChecked == false)
+            else if (ModelState.IsValid &&  emailChecked == false)
             {
                 TempData["error"] = "Email is Not in format!!";
                 return View(model);
             }
-            TempData["error"] = "Enter Appropriate Data";
-            ViewBag.countries = _dbcontext.Countries.ToList();
-            return View(model);
+            else
+            {
+                TempData["error"] = "Enter Appropriate Data";
+                ViewBag.countries = _dbcontext.Countries.ToList();
+                return View(model);
+            }      
         }
 
         #endregion
@@ -104,23 +107,24 @@ namespace DemoProject.Controllers
 
         public IActionResult OtpVerification(RegistrationModel model)
         {
-            long otp = _demoreppo.GenerateRandomOtp();
-            SendEmailAsync(model.Email, otp);
+            
+                long otp = _demoreppo.GenerateRandomOtp();
+                SendEmailAsync(model.Email, otp);
 
-            UserOtp existingOtp = _dbcontext.UserOtps.FirstOrDefault(a => a.Email.ToLower() == model.Email.ToLower());
-            DateTime currentDateTime = DateTime.Now;
-            DateTime expirationDateTime = currentDateTime.AddMinutes(5);
+                UserOtp existingOtp = _dbcontext.UserOtps.FirstOrDefault(a => a.Email.ToLower() == model.Email.ToLower());
+                DateTime currentDateTime = DateTime.Now;
+                DateTime expirationDateTime = currentDateTime.AddMinutes(5);
 
-            if (existingOtp == null)
-            {
-                _demoreppo.CreateUserOtp(model.Email, otp, currentDateTime, expirationDateTime);
-            }
-            else
-            {
-                _demoreppo.UpdateUserOtp(existingOtp, otp, currentDateTime, expirationDateTime);
-            }
+                if (existingOtp == null)
+                {
+                    _demoreppo.CreateUserOtp(model.Email, otp, currentDateTime, expirationDateTime);
+                }
+                else
+                {
+                    _demoreppo.UpdateUserOtp(existingOtp, otp, currentDateTime, expirationDateTime);
+                }
 
-            return View(model);
+                return View(model);
         }
 
 
@@ -131,32 +135,31 @@ namespace DemoProject.Controllers
             if (model.Otp != 0)
             {
                 var email = HttpContext.Session.GetString("email");
+                var home = RedirectToAction("Index", "Home");
+                var registration = RedirectToAction("Registration", "Home");
                 if (email == null)
                 {
-                    return RedirectToAction("Index", "Home");
+                    return home;
                 }
 
                 var check = _dbcontext.UserOtps.Where(otp => otp.Email.ToLower() == email.ToLower() && otp.Otp == model.Otp).FirstOrDefault();
                 if (check != null && email != null)
                 {
+                    if (_demoreppo.IsWithinFiveMinutes(check.CreatedAt) == false)
+                    {
+                        TempData["error"] = "Otp is expired!!";
+                        return registration;
+                    }
                     var userExists = _demoreppo.AddUser(model);
                     TempData["success"] = "OTP has been verified and you have registered successfully.";
-                    return RedirectToAction("Index", "Home");
+                    return home;
                 }
                 else if (check == null)
                 {
                     TempData["error"] = "OTP is not Correct..";
-                    return RedirectToAction("Registration", "Home");
-                }
-                else
-                {
-                    if (_demoreppo.IsWithinFiveMinutes(check.CreatedAt) == false)
-                    {
-                        TempData["error"] = "Otp is expired!!";
-                    }
-                }
+                    return registration;
+                }   
             }
-
             TempData["error"] = "Enter Appropriate OTP";
             return View(model);
         }
@@ -263,7 +266,10 @@ namespace DemoProject.Controllers
             ViewBag.Products = _dbcontext.Products.ToList();
             return View();
         }
-
+        public JsonResult GetCityForRegistration(long countryId)
+        {
+            return Json(JsonSerializer.Serialize(_demoreppo.GetCityForRegistration(countryId)));
+        }
         public JsonResult GetCity(long countryId , long ProductId)
         {
             return Json(JsonSerializer.Serialize(_demoreppo.GetCityData(countryId , ProductId)));
