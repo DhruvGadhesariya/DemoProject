@@ -26,14 +26,14 @@ namespace DemoProject.Entities.ViewModel
         public string? ConfirmPassword { get; set; }
 
         [Required(ErrorMessage = "Phone number is required.")]
-        [RegularExpression(@"^\+?[0-9]{1,3}-?[0-9]{3,4}-?[0-9]{6,8}$", ErrorMessage = "Invalid phone number.")]
-        public long PhoneNumber { get; set; }
+        [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Invalid phone number.")]
+        public string PhoneNumber { get; set; } = string.Empty!;
 
         public long? CountryId { get; set; }
 
         public long? CityId { get; set; }
 
-        public long Otp { get; set; }
+        public string Otp { get; set; } = string.Empty;
 
         //public string CityName { get; set; } = null!;
 

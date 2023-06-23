@@ -280,7 +280,7 @@ function GetCityForUser() {
 
     $.ajax({
 
-        url: "/Home/GetCity",
+        url: "/Home/GetCityForRegistration",
         method: "POST",
 
         data: {
@@ -335,53 +335,54 @@ function GetCityForRegistration() {
                                                                                    ${name.Name}
                                                                            </option>`;
             })
-
-
         },
         error: function (request, error) {
             console.log(error);
         }
-
-
     })
 }
 
 function AddProducts() {
-
+    debugger
     var ProductId = $('#products').find(":selected").val();
     var country = $('#ocountries').find(":selected").val();
     var city = $('#CityForOrder').find(":selected").val();
-    var from = $('#from').val();
-    var to = $('#to').val();
+    var from = $('#from').val().trim();
+    var to = $('#to').val().trim();
 
-    $.ajax({
-        url: '/Home/OrderProduct',
-        type: 'GET',
-        datatype: 'html',
-        data: {
-            ProductId: ProductId,
-            CountryId: country,
-            CityId: city,
-            From: from,
-            To: to
-        },
-        success: function (response) {
-            if (response == "falseTime") {
-                $('#timestatus').html("Order for this time is already placed!!");
-                $('#timestatus').css('color', 'red');
+    if (country == undefined || city == undefined || !(from) || !(to)) {
+        toastr.error("Please enter appropriate data..");
+    }
+    else
+    {
+        $.ajax({
+            url: '/Home/OrderProduct',
+            type: 'GET',
+            datatype: 'html',
+            data: {
+                ProductId: ProductId,
+                CountryId: country,
+                CityId: city,
+                From: from,
+                To: to
+            },
+            success: function (response) {
+                if (response == "falseTime") {
+                    $('#timestatus').html("Order for this time is already placed!!");
+                    $('#timestatus').css('color', 'red');
+                }
+                else if (response == "notAvailable") {
+                    $('#timestatus').html("Product is not Available for your Country!!");
+                    $('#timestatus').css('color', 'red');
+                }
+                else {
+                    location.reload();
+                    $('#addProducts').modal('hide');
+                    clearModal();
+                }
             }
-            else if (response == "notAvailable") {
-                $('#timestatus').html("Product is not Available for your Country!!");
-                $('#timestatus').css('color', 'red');
-            }
-            else {
-                location.reload();
-                $('#addProducts').modal('hide');
-                clearModal();
-            }
-        }
-    });
-
+        });
+    }
 }
 
 function GetCheckedCountryIds(id) {
@@ -568,15 +569,7 @@ function SearchProducts(pg, finder, sort) {
     })
 }
 
-function SendMail() {
-    $.ajax({
-        url: "/Home/SendEmailForOrderAsync",
-        type: "post",
-        success: function () {
 
-        }
-    })
-}
 
 function SearchEmp(pg, finder, sort) {
     debugger

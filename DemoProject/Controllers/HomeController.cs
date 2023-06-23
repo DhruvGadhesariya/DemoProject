@@ -104,7 +104,6 @@ namespace DemoProject.Controllers
 
         #region OtpVerification
 
-
         public IActionResult OtpVerification(RegistrationModel model)
         {
             
@@ -123,8 +122,9 @@ namespace DemoProject.Controllers
                 {
                     _demoreppo.UpdateUserOtp(existingOtp, otp, currentDateTime, expirationDateTime);
                 }
+            model.Otp = null; // Set the Otp property to null
 
-                return View(model);
+            return View(model);
         }
 
 
@@ -135,11 +135,9 @@ namespace DemoProject.Controllers
             if (model.Otp != 0)
             {
                 var email = HttpContext.Session.GetString("email");
-                var home = RedirectToAction("Index", "Home");
-                var registration = RedirectToAction("Registration", "Home");
                 if (email == null)
                 {
-                    return home;
+                    return RedirectToAction("Index", "Home");
                 }
 
                 var check = _dbcontext.UserOtps.Where(otp => otp.Email.ToLower() == email.ToLower() && otp.Otp == model.Otp).FirstOrDefault();
@@ -148,17 +146,31 @@ namespace DemoProject.Controllers
                     if (_demoreppo.IsWithinFiveMinutes(check.CreatedAt) == false)
                     {
                         TempData["error"] = "Otp is expired!!";
-                        return registration;
+                        return RedirectToAction("Registration", "Home");
                     }
                     var userExists = _demoreppo.AddUser(model);
-                    TempData["success"] = "OTP has been verified and you have registered successfully.";
-                    return home;
+                    if (userExists)
+                    {
+                        TempData["success"] = "OTP has been verified and you have registered successfully.";
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        TempData["success"] = "You have already registered.";
+                        return RedirectToAction("Index", "Home");
+                    }
+                    
                 }
                 else if (check == null)
                 {
                     TempData["error"] = "OTP is not Correct..";
-                    return registration;
-                }   
+                    return RedirectToAction("Registration", "Home");
+                }
+            }
+            else
+            {
+                TempData["error"] = "Enter Appropriate OTP";
+                return View();
             }
             TempData["error"] = "Enter Appropriate OTP";
             return View(model);
@@ -231,7 +243,7 @@ namespace DemoProject.Controllers
                     else
                     {
                         TempData["error"] = "Enter Valid Email or Password!!";
-                        return View(model);
+                        return View();
                     }
                 }
                 else
@@ -239,11 +251,17 @@ namespace DemoProject.Controllers
                     TempData["error"] = "Enter Valid Email or Password!!";
                 }
             }
-            else if (emailChecked == false)
+            else if (ModelState.IsValid && emailChecked == false)
             {
                 TempData["error"] = "Email is not in format!!";
+                return View();
             }
-            TempData["error"] = "Enter Valid Email or Password!!";
+            else
+            {
+                TempData["error"] = "Enter Valid Email or Password!!";
+                return View();
+            }
+           
             return View(model);
         }
 
@@ -369,13 +387,13 @@ namespace DemoProject.Controllers
             return PartialView("_Pagination");
         }
 
-
         [HttpPost]
         public void DownloadData(string format, UserSearchParams obj)
         {
             var userId = HttpContext.Session.GetInt32("userid");
             if (format == "pdf")
             {
+
                 _demoreppo.DownLoadPdf(userId, obj);
             }
             else 
@@ -504,7 +522,6 @@ namespace DemoProject.Controllers
             }
         }
 
-
         public string OrderProduct(OrderParams order)
         {
             var userId = HttpContext.Session.GetInt32("userid");
@@ -550,9 +567,9 @@ namespace DemoProject.Controllers
         #endregion
 
         #region SendMails 
-        public IActionResult SendInvite(long OrderId)
+        public IActionResult SendInvite(long orderId)
         {
-            ViewBag.OrderId = OrderId;
+            ViewBag.OrderId = orderId;
             return View();
         }
 

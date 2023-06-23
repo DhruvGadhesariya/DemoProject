@@ -100,6 +100,7 @@
         var validFields = false;
 
         $('.email-input').each(function() {
+
           if ($(this).val() === '') {
             emptyFields = true;
             return false;
@@ -107,7 +108,8 @@
           if (!isValidEmail($(this).val())) {
               validFields = true;
               return false;
-         }
+          }
+
         });
 
         if (emptyFields) {
@@ -143,7 +145,7 @@
               // check field is not empty
               if (email === '') {
                alert('Please fill in all email input fields before adding another.');
-                   return;
+                return;
               }
             // Validate the email format
             if (!isValidEmail(email)) {

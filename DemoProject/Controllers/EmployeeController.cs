@@ -94,7 +94,7 @@ namespace DemoProject.Controllers
                 ? Math.Ceiling(list / (double)obj.PageSize)
                 : Math.Ceiling(empData.Count() / (double)obj.PageSize);
 
-            // Set viewbag properties for view
+            // viewbag properties for view
             ViewBag.CurrentPage = obj.Pg;
             ViewBag.Finder = obj.Finder;
             ViewBag.Sort = obj.Sort;
@@ -110,16 +110,17 @@ namespace DemoProject.Controllers
         // Function to Create Employee
         public void AddEmp(Employee emp)
         {
-            bool isAdded = _employee.AddEmployee(emp);
 
-            if (isAdded)
-            {
-                TempData["success"] = "Employee added successfully!!";
-            }
-            else
-            {
-                TempData["error"] = "There is an error while saving entities!!";
-            }
+           bool isAdded = _employee.AddEmployee(emp);
+
+           if (isAdded)
+           {
+               TempData["success"] = "Employee added successfully!!";
+           }
+           else
+           {
+               TempData["error"] = "There is an error while saving entities!!";
+           }    
         }
 
         // Function to Read Employee 

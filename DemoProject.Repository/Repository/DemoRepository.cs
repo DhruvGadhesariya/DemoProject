@@ -34,7 +34,7 @@ namespace DemoProject.Repository.Repository
             DateTime currentDateTime = DateTime.Now;
             TimeSpan difference = currentDateTime - dateTimeToCheck;
 
-            return difference.Duration().TotalMinutes <= 5;
+            return difference.Duration().TotalMinutes <= 1;
         }
 
         public bool IsValidEmailAddress(string email)
@@ -255,7 +255,6 @@ namespace DemoProject.Repository.Repository
 
         public List<User> FilterUsersForDownload(UserSearchParams obj)
         {
-            var pageSize = obj.PageSize;
             var query = _dbcontext.Users.AsQueryable().Where(user => user.DeletedAt == null);
 
             query = ApplySearchFilters(query, obj);
@@ -316,44 +315,50 @@ namespace DemoProject.Repository.Repository
             var filteredData = GetFilteredData(userData);
 
             string filePath = "C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Downloads\\" + filename;
-
-            Document document = new Document();
-            MemoryStream memoryStream = new MemoryStream();
-            PdfWriter writer = PdfWriter.GetInstance(document, new FileStream(filePath, FileMode.Create));
-
-            document.Open();
-
-            PdfPTable table = new PdfPTable(filteredData.Columns.Count);
-            table.WidthPercentage = 100;
-            table.SetWidths(GetColumnWidths(filteredData));
-            table.DefaultCell.Border = PdfPCell.NO_BORDER;
-            table.SpacingBefore = 10f;
-            table.SpacingAfter = 10f;
-            iTextSharp.text.Font cellFont = FontFactory.GetFont(FontFactory.TIMES_ROMAN, 10, BaseColor.WHITE);
-
-            foreach (DataColumn column in filteredData.Columns)
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                PdfPCell cell = new PdfPCell();
-                cell.HorizontalAlignment = Element.ALIGN_CENTER;
-                cell.VerticalAlignment = Element.ALIGN_MIDDLE;
-                cell.Padding = 5f;
-                cell.BackgroundColor = BaseColor.GRAY;
-                cell.Phrase = new Phrase(column.ColumnName, cellFont);
-                table.AddCell(cell);
-            }
+                Document document = new Document();
 
-            foreach (DataRow row in filteredData.Rows)
-            {
+                PdfWriter writer = PdfWriter.GetInstance(document, memoryStream/*new FileStream(filePath, FileMode.Create)*/);
+
+                document.Open();
+
+                PdfPTable table = new PdfPTable(filteredData.Columns.Count);
+                table.WidthPercentage = 100;
+                table.SetWidths(GetColumnWidths(filteredData));
+                table.DefaultCell.Border = PdfPCell.NO_BORDER;
+                table.SpacingBefore = 10f;
+                table.SpacingAfter = 10f;
+                iTextSharp.text.Font cellFont = FontFactory.GetFont(FontFactory.TIMES_ROMAN, 10, BaseColor.WHITE);
+
                 foreach (DataColumn column in filteredData.Columns)
                 {
-                    PdfPCell cell = new PdfPCell(new Phrase(row[column].ToString()));
-                    cell.HorizontalAlignment = Element.ALIGN_LEFT;
+                    PdfPCell cell = new PdfPCell();
+                    cell.HorizontalAlignment = Element.ALIGN_CENTER;
                     cell.VerticalAlignment = Element.ALIGN_MIDDLE;
+                    cell.Padding = 5f;
+                    cell.BackgroundColor = BaseColor.GRAY;
+                    cell.Phrase = new Phrase(column.ColumnName, cellFont);
                     table.AddCell(cell);
                 }
+
+                foreach (DataRow row in filteredData.Rows)
+                {
+                    foreach (DataColumn column in filteredData.Columns)
+                    {
+                        PdfPCell cell = new PdfPCell(new Phrase(row[column].ToString()));
+                        cell.HorizontalAlignment = Element.ALIGN_LEFT;
+                        cell.VerticalAlignment = Element.ALIGN_MIDDLE;
+                        table.AddCell(cell);
+                    }
+                }
+                document.Add(table);
+                document.Close();
+
+                byte[] fileContents = memoryStream.ToArray();
+
+                System.IO.File.WriteAllBytes(filePath, fileContents);
             }
-            document.Add(table);
-            document.Close();
         }
 
         public void DownLoadExcel(int? userId, UserSearchParams obj)
@@ -364,7 +369,7 @@ namespace DemoProject.Repository.Repository
 
             string fileName = "filtered_" + userId + "-.xlsx";
 
-            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Downloads/", fileName);
+            string filePath = "C:\\Users\\pca140\\source\\repos\\DemoProject\\DemoProject\\wwwroot\\Downloads\\" + fileName;
 
             using (ExcelPackage package = new ExcelPackage())
             {
@@ -379,7 +384,7 @@ namespace DemoProject.Repository.Repository
                     worksheet.Cells[1, columnCount].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
                     columnCount++;
                 }
-
+                    
                 int rowCount = 2;
                 foreach (DataRow row in filteredData.Rows)
                 {
@@ -405,7 +410,6 @@ namespace DemoProject.Repository.Repository
 
         public string OrderProducts(OrderParams order, int? userId)
         {
-            var checkShared = _dbcontext.Products.FirstOrDefault(a => a.ProductId == order.ProductId).Shared;
             string utcTime = GetCountryCityUtcTimeAsync(order.CountryId, order.CityId);
             bool isAvailable = _dbcontext.AvailableProducts.Any(a => a.CountryId == order.CountryId && a.ProductId == order.ProductId && a.CityId == order.CityId);
 
